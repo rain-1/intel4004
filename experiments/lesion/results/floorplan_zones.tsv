@@ -1,0 +1,10 @@
+zone	label	transistors	in_own_zone_cell	clusters
+pc	Program counter and address stack	531	517	1,6,14,33
+reg	Index registers	441	421	2,13,18,37,45,51
+alu	Accumulator, carry and arithmetic	346	297	3,8,9,10,12,16,19,20,21,22,26,27,28,30,31,34,38,42,47,48,49
+cm	Command lines (CM-ROM, CM-RAM, DCL)	126	108	4,15,29,40,46
+mixed	Shared decode (breaks several blocks)	26	8	17,24,25,36,43,44,50
+bus	Data bus contents only	30	9	11,23,35,52
+reset	Reset only	86	69	5
+all	Breaks everything (clock, timing, control)	618	551	0,32,39,41
+none	No effect in the model	38	5	7

@@ -433,6 +433,10 @@ experiments/lesion/
   results/summary.txt       every number above, plus full narrow-lesion lists
   results/web.json          data for the page
   figures/die_severity.png, die_clusters.png, die_blocks.png, effects.png, cluster_matrix.png
+  figures/floorplan.png     floorplan drawn from the lesion clusters alone (floorplan.py; zone
+                            counts in results/floorplan_zones.tsv; needs scipy). 89% of
+                            transistors lie in a cell of their own zone. Zone names are a reading
+                            of the effects; not compared with a published floorplan.
 web/4004-lesion.html        single-file page (die photo, hover/click a transistor, highlight by
                             instruction / cluster / block); photo credit CC BY-NC-SA 3.0 as in the
                             birthday demo. Not published.
