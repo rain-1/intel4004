@@ -26,6 +26,13 @@ Non-commercial use only.
 
 `source/busicom/busicom-141pf.bin`. See `source/busicom/NOTICE.txt`.
 
+## HA1152 die photographs
+
+`web/ha1152/img/`: crops and overlays derived from two photographs of the
+HA1152 die by Sean Riddle, from Wikimedia Commons
+(`Starfoxwatchhmcmetal.jpg`, `Starfoxwatchhmcacid.jpg`), CC BY-SA 4.0. The
+derived images are under the same licence.
+
 ## Fonts
 
 `video/fonts/`: Archivo, IBM Plex Sans and IBM Plex Mono, each under the SIL
