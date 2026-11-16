@@ -1,0 +1,332 @@
+FEASIBILITY: two experiments on the transistor-level Intel 4004
+================================================================
+Date: 2026-11-15. Time-boxed study (a few hours), not the full project.
+All new code is under experiments/; nothing existing was modified.
+Machine: 12 hardware threads (nproc = 12).
+
+SUMMARY
+-------
+Idea A (lesion study)       : FEASIBLE WITH CAVEATS. A full sweep (2242 transistors x stuck-open/
+                              stuck-closed) costs about 1 hour on 12 threads with 2 tests per opcode.
+                              The pilot (200 transistors, 400 lesions) ran in 5 min 19 s. Several
+                              result classes are artefacts of the switch-level model and must be
+                              flagged, not interpreted.
+Idea B (Busicom 141-PF)     : FEASIBLE, and already partly done. The firmware (rebuilt from the
+                              4004.com listing) idles, takes keys, adds and takes a square root on the
+                              reference emulator with a new peripheral model, and the SAME runs on the
+                              transistor-level netlist print the same paper output with bus-activity
+                              logs identical to the reference over 450k cycles (2 SQRT ->
+                              1.4142135623730) and 850k cycles (18 + 42 + = -> 60), at ~7.4k cycles/s
+                              (~1-2 min per session) on a loaded machine.
+
+======================================================================================================
+IDEA A: LESION STUDY
+======================================================================================================
+
+A1. Prior work
+--------------
+- Jonas E, Kording KP (2017) "Could a neuroscientist understand a microprocessor?" PLoS Comput Biol
+  13(1): e1005268. https://pmc.ncbi.nlm.nih.gov/articles/PMC5230747  (read via the PMC full text)
+  What they did: MOS 6502 netlist from the Visual6502 project (3510 enhancement transistors), their own
+  C++ switch-level simulator (~1000 clock cycles/s). A lesion = "forcing its input high, thus leaving it
+  in an 'on' state", i.e. STUCK-CLOSED ONLY. Behaviours: three Atari 2600 games (Donkey Kong, Space
+  Invaders, Pitfall; Asteroids dropped), 10 s each; criterion = whether the game reaches its first
+  drawn frame. Result: 1565 transistors no effect, 1560 break all games, 200 break two, 186 break one
+  (the counts sum to 3511 in the paper). Their point was that "game-specific" transistors are a
+  misleading result (they implement adders etc.), i.e. the method was used as a cautionary tale.
+  Data: http://ericmjonas.github.io/neuroproc/ ; no separate code repository is listed.
+- 4004 / 4040 / 8008: web searches found NO lesion or fault-injection study on any of these netlists.
+  (Searches: "Intel 4004 transistor-level simulation fault injection stuck-at", "4004 OR 8008 ...
+  lesion ... neuroscientist", "Busicom ... transistor-level simulation".) Not proof of absence.
+- Conceptual prior art (from memory, not re-read for this study): switch-level fault simulation is an
+  old IC-test technique (Bryant's MOSSIM / FMOSSIM, Bryant & Schuster, early 1980s) with stuck-open /
+  stuck-closed transistor fault models. A per-transistor fault sweep is therefore not new as a method;
+  what would be new is (a) doing it on the 4004 netlist extracted from the masks, (b) both fault
+  polarities with an instruction-level signature (which opcodes break, which pins, which state), and
+  (c) the explicit artefact accounting below, mapped back onto the die photo.
+
+A2. Harness and cost (measured)
+-------------------------------
+Code: experiments/lesion/
+  lesionsim.c/.h  copy of sim/switchsim.c + a per-transistor force[] (-1 normal, 0 stuck open,
+                  1 stuck closed), applied in set_node() and at power-on. No other change.
+  lesion.c        adapted from sim/vectors.c: scripted bus, state set up and read back only through
+                  the pins. Replays the first K tests of every opcode with exactly the same RNG stream
+                  as vectors/v1, plus a reset test (load full state, hold RESET 64 periods, read back),
+                  compares every pin sample of the instruction under test and the read-back final
+                  state with the intact chip. Guards against lost SYNC (bounded waits).
+                  Output per lesion: failing-opcode bitmap, pin-mismatch bitmap, state-mismatch bitmap,
+                  reset flag, no-sync flag, count of non-converging settles.
+  check_golden.py verified: the intact-chip runs reproduce vectors/v1 exactly (512/512 tests at K=2).
+  run_sweep.sh    splits a lesion list over all cores.
+  analyze.py      classes + per-group summary + TSV.
+
+Cost:
+  One test = reset (12 instruction cycles) + set-up (~34) + instruction (1-2) + read-out (~41)
+  ~= 90 instruction cycles. K=2 per opcode -> 512 tests + reset test ~= 47k instruction cycles.
+  Single thread, idle machine: 4.0 s per lesion (golden pass 3.9 s).
+  Pilot: 400 lesions in 319 s wall on 12 threads = 0.80 s per lesion wall (hyperthreads share cores).
+  Full sweep estimate (12 threads):
+     K=2 : 4484 lesions -> ~60 min  (4057 if the 427 trivially-null "load stuck closed" are skipped)
+     K=8 : ~4 h ; K=16 : ~8 h
+  Process-level overhead is negligible (one golden pass per worker).
+
+Smallest meaningful test set (recommendation):
+  - Every opcode (256), because the decoder is a PLA-like structure and many lesions hit one opcode
+    family only (JCN/ISZ, FIN/JIN, SUB, IO-write ...). One test per opcode distinguishes decode faults.
+  - Datapath faults are data-dependent (one bit of a register/ALU/address): random operands find them
+    only probabilistically (see A3: "ACC-group(1/14)" style partial hits). Instead of more random
+    tests, use 4 structured tests per opcode: operands/registers/PC all-0, all-1, 0101, 1010 (plus
+    page-edge PC for JCN/ISZ/FIN/JIN), TEST pin both levels for JCN, both carry values for ADD/SUB/DAA/
+    RAL/RAR. That is ~1100 tests, ~2x the K=2 cost (~2 h full sweep) and much better coverage.
+  - Reset test (kept), and a test that holds the chip for many cycles without refresh would be needed
+    to probe dynamic-storage faults (but see A4: the model has no leakage, so it cannot do this).
+
+A3. Pilot (measured)
+--------------------
+200 transistors sampled uniformly (random.seed(4004)), both stuck-open and stuck-closed, K=2.
+Files: experiments/lesion/pilot_list.txt, pilot_k2.txt (raw), pilot_k2.tsv, pilot_summary.txt.
+Classes (analyze.py):
+  global  = NOP itself fails (set-up/read-out broken) or >= 240 opcodes fail  -> "breaks everything"
+  broad   = >= 12 of 19 instruction groups fail on some operands (a datapath/address/timing bit)
+  partial = fewer groups fail: instruction-class specific
+  reset   = only the reset test differs
+  none    = nothing differs
+
+                     global      broad     partial    reset     none
+  stuck-open  (200)  131 (66%)   8 (4%)    36 (18%)   7 (4%)    18 (9%)
+  stuck-closed(200)  101 (50%)   6 (3%)    22 (11%)   3 (2%)    68 (34%)
+
+By device kind (load = gate and one terminal on VDD; pullup = other device to VDD;
+pulldown = device to VSS; pass = neither terminal on a supply):
+  stuck-open : load g30 b1 p9 n1 | pass g39 b4 p7 r2 n2 | pulldown g49 b3 p18 r5 n13 | pullup g13 p2 n2
+  stuck-closed: load n41 (all)   | pass g41 b3 p6 r1 n3 | pulldown g56 b3 p16 r2 n11 | pullup g4 n13
+
+Examples of class-specific lesions (pilot_summary.txt has all):
+  JCN(+ISZ) only: 905c 988o 990c 1084c 1190c 1274o 1281o 1293 1304o 1326 1330o 1375o 1402 1403
+  FIN/JIN only: 1019 1216o; FIM or FIN pin-only: 1195 1222o; INC+ISZ: 1113c 1511o; SUB only: 1480o
+  IO-write only: 1140o; ADD/SUB/ACC arithmetic: 1951 1974o 1994o 2035o 2047o 2075c 2090
+  reset-only: 627 628 784 805 808 957o 987o (the reset logic, (943-1562, 733-1113) on the layout)
+  i.e. a coarse functional map does emerge: JCN condition logic, ISZ, FIN/JIN, the ALU, the reset path.
+
+Simulator health in the pilot: 25/400 lesions had non-converging settles (400-pass cap hit; one had
+13285), 9 lost SYNC entirely. All were flagged; all are in the "global" class anyway.
+
+"Breaks nothing" -- what they are:
+  - 41 of 68 stuck-closed nulls are LOAD devices: their gate is VDD, they are always on already, so
+    "stuck closed" is a no-op by construction. Not a finding; skip them in a sweep (427 devices).
+  - 13 of 17 stuck-closed PULL-UPS (upper devices of push-pull / superbuffer stages) show nothing:
+    in the model any path to VSS beats any path to VDD, so a permanently-on pull-up is harmless as
+    long as its pulldown works. In silicon an always-on large pull-up fighting a pulldown gives a
+    bad intermediate level. MODEL ARTEFACT.
+  - Stuck-open pulldowns on precharged/dynamic nodes with no load (e.g. T443, T450, T619: nodes
+    94/95/141, no device to VDD, each gating 8-12 transistors) and clocked devices (T892 gate=PHI2,
+    T947 gate=PHI1): plausibly charge-storage / timing devices whose job (clearing a node in a given
+    phase, preventing a race) is invisible without leakage and delays.
+  - Parallel/redundant NOR terms in decode logic (T1910/T1911 gate=358, T1948 gate=751, T1989 gate=383
+    on nodes 371/376/377 in the lower-left, (500-620, 2150-2230)): several pulldowns with the same
+    gate on sibling nodes -- candidates for genuinely redundant or test-gap cases.
+  - No input-protection device was in the random sample; the 8 protection devices (T35 T105 T277
+    T365 T2121 T2144 T2147 T2234) were run separately (see recheck below).
+  Recheck with K=16 of the 61 non-trivial nulls + the 8 protection devices:
+  (61 lesions, K=16 = 4096 tests each, 9 min 45 s on 12 threads; recheck_k16.txt, recheck_summary.txt)
+  - 45 non-trivial nulls from the pilot: 7 became detectable with 8x more random tests
+    (1281c -> ISZ 10/16; 1910o, 1911c, 1948o, 1989c/o, 2134o -> 1-4 single ACC-group / undefined
+    opcodes). So the K=2 random set misses ~15% of real, operand-dependent effects; 38/45 stay null.
+    Those 7 are the lower-left NOR terms named above: test gap, not redundancy.
+  - Input-protection devices (gate tied to VSS in the extracted netlist): stuck-open is a no-op by
+    construction (8/8 null). Stuck-closed on D0-D3 shorts the pin to VSS -> global failure (4/4).
+    Stuck-closed on TEST, RESET, PHI1, PHI2 -> null, because the rig drives those pins as ideal
+    sources (driven nodes are never overridden): ARTEFACT of ideal external drivers.
+  Remaining genuine-looking nulls (after removing loads-closed, pull-ups-closed, protection devices):
+  roughly 10% of non-load lesions; most sit on dynamic/precharged nodes or clocked devices (items 3, 6
+  in A4), so a full sweep should report them as "unexplained by this model" rather than "unused".
+
+A4. Pitfalls: when is a lesion result an artefact of the switch-level model?
+------------------------------------------------------------------------------
+ 1. Loads stuck closed: always no-op (gate on VDD). 427 devices. Exclude.
+ 2. "VSS wins" ratio rule (switchsim.c recalc): any conducting path to VSS beats any path to VDD,
+    regardless of sizes. Stuck-closed pull-ups / superbuffer uppers, and stuck-closed devices that
+    create a VDD-VSS fight, are resolved as clean 0 instead of a broken level. Under-reports failures.
+    Fix for a sweep: flag any settle in which a group sees both supplies and a lesioned device is in
+    the path ("contention"), and report those separately (cheap: one more flag in recalc()).
+ 3. No leakage: floating nodes keep their charge forever. A stuck-open load or precharge device leaves
+    the node holding whatever it had, so the model may keep working where silicon would decay in
+    milliseconds. Over-reports "none" for dynamic logic. (The vectors run only ~90 cycles per test,
+    after a power-on that clears every node to 0, which makes this deterministic but unphysical.)
+ 4. Power-on state: every node starts at VSS. A node that lost its only driver sits at 0 forever: the
+    lesion becomes "stuck-at-0 node" rather than "random/undefined".
+ 5. Charge sharing is resolved by conductor-area majority: when a lesion changes which nodes are
+    connected, the outcome can depend on area ratios that do not represent real capacitance well.
+ 6. No delays, no bootstrap: devices whose purpose is timing (race avoidance, non-overlap, glitch
+    suppression) or speed (bootstrap loads; the 66 capacitors are not simulated at all) look redundant.
+ 7. Non-convergence: a stuck-closed device can make a feedback loop oscillate; settle() gives up after
+    400 passes and leaves whatever state it reached. Results for such lesions are not meaningful
+    beyond "broken"; keep the flag in the data (6% of pilot lesions).
+ 8. Observability: everything goes through the pins via set-up/read-out instructions (FIM, LDM, JUN,
+    JMS, WRR, LD, BBL, TCC). A lesion that breaks one of those reads as "global" even if the lesioned
+    function is narrow. 66% stuck-open "global" is partly this. A second harness that peeks internal
+    register nodes (allowed in an experiment) would separate "breaks the chip" from "breaks the test".
+ 9. Sampling: K random tests per opcode only sample data-dependent faults (see recheck).
+10. Extraction: a mis-traced transistor would show as "none"; the device counts match Kintli's
+    mask/schematic comparison (1807 + 427 loads + 8 protection = 2242), so few such are expected.
+11. Interpretation (Jonas & Kording's own caveat): "transistor X is needed for JCN" is a statement about
+    the test set, not a function; the map is a description, not an explanation.
+
+A5. Deliverable and effort
+--------------------------
+Data: one TSV row per (transistor, mode): id, mode, layout x/y, device kind, gate/terminal nodes,
+class, failing-opcode bitmap (256 bits hex), pin-vs-state mismatch bitmaps, reset flag, nosync,
+unstable count, contention flag (new). Plus a JSON per transistor with the per-group fractions.
+Size: ~4.5k rows, ~1 MB.
+Overlay: tools/diemap.py / build_web.py already produce per-pixel node-id maps warped onto the die
+photo (netlist/photo_align.json) and the transistor list has layout x/y. A page that colours each
+transistor's gate region (or a dot) by class/group, with hover showing the signature and a filter by
+instruction group ("show everything JCN needs"), is a variant of web/template.html: no simulator needed
+in the page. Optional: click a transistor -> replay the failing vector in the existing JS simulator
+with the lesion applied (sim4004.js would need the same 3-line force[] change).
+Effort estimate:
+  - full sweep with structured test set + contention flag + internal-peek variant : 1 day (+2-4 h CPU)
+  - analysis/clustering of signatures, cross-reference with Kintli's schematic signal names
+    (source/analyzer/i4004-signals.txt) to name the blocks                       : 1-2 days
+  - die-photo overlay page                                                        : 1 day
+  Total ~3-4 days.
+Recommended scope: skip load-stuck-closed; run stuck-open for all, stuck-closed for non-loads, with the
+structured ~1100-test set; publish the classes with the artefact flags (contention, nosync, unstable,
+"dynamic node" = no device to VDD) as first-class columns so nobody reads a model artefact as biology.
+
+======================================================================================================
+IDEA B: BUSICOM 141-PF FIRMWARE ON THE NETLIST
+======================================================================================================
+
+B1. Source, licence, hardware
+-----------------------------
+- Annotated listing, release 1.0.1 (15 Nov 2009):
+  https://www.4004.com/2009/Busicom-141PF-Calculator_asm_rel-1-0-1.txt (linked from
+  https://www.4004.com/busicom/ and https://www.4004.com/downloads/). Downloaded to
+  experiments/busicom/source/. Binaries recovered by Tim McNerney and Fred Huettig with the Computer
+  History Museum (2005); disassembly Barry & Brian Silverman, Tim McNerney (2006); detailed analysis and
+  comments Lajos Kintli (2007).
+  Licence, verbatim: "The original Busicom binary code is not a copyrighted work and may be freely
+  distributed without restriction. The commented code and related documentation (the "work") are
+  subject to the terms of this license." -> CC BY-NC-SA 2.5 for the comments/documentation.
+- No separate .bin is offered on 4004.com (the Windows simulator zip of 2007 presumably contains one;
+  not downloaded, it is an executable package). The ROM image was rebuilt from the listing's address/
+  byte columns by experiments/busicom/extract_rom.py (text parsing only; nothing executed):
+  1280 bytes $000-$4FF, all addresses defined, sha1 6ab79dc4148e98888a5944580b12df9709a4826d.
+  Validation: it computes 18+42=60 and SQRT 2 = 1.4142135623730, identical to the listing's own
+  worked example of the printer data for SQRT(2).
+- Also downloaded: https://www.4004.com/assets/model-102-printer-sim.c (Tim McNerney's Model-102
+  printer emulator for PIC, CC BY-NC-SA) for drum timing: sector period 28 ms, sector pulse 5 ms,
+  13 sectors per revolution, index during sector 0.
+- Hardware the firmware expects (from listing chapter 3):
+  5 x 4001 (5th, $400-$4FF, only for the square-root option), 2 x 4002, 3 x 4003, 1 x 4004 at
+  10.8 us per instruction cycle.
+  TEST       : printer drum sector signal (active = logic 0 in the firmware's JCN sense)
+  ROM0 out   : bit0 keyboard 4003 clock, bit1 shifter data (shared), bit2 printer 4003 clock
+  ROM1 in    : keyboard matrix rows (10 columns x 4 rows; cols 9/10 = decimal-point and rounding
+               switches through diodes)
+  ROM2 in    : bit0 drum index, bit3 paper-advance button
+  RAM0 port  : bit0 red ribbon, bit1 fire hammers, bit3 paper advance
+  RAM1 port  : lamps (memory, overflow, minus)
+  Printer    : two cascaded 4003 = 20 hammer bits (cols 1-15 digits, 17-18 symbols), fired when the
+               wanted character row passes; a line can take up to a full drum turn (364 ms).
+  No DCL, no WPM; the code relies on all RAM and registers starting at zero.
+- Other copies: GitHub gist "Recreation of the firmware source code for the Intel MCS-4 Based Busicom
+  141-PF" (https://gist.github.com/sr229/62a82d1cbadb0466e027956303745be7, seen only as a search
+  result, based on the same McNerney/Huettig binaries). Not read.
+
+B2. Prior work -- what exactly exists
+-------------------------------------
+- Instruction-level emulators that run the firmware: 4004.com Windows simulator with animated flowchart
+  (2007); Chen Steenvoorden's WebAssembly simulator (https://dutchen18.gitlab.io/emu-rs/, linked from
+  4004.com news 2025); AT4004 (Miroslav Nemecek, ATmega8; https://github.com/Panda381/AT4004); Js141
+  (https://github.com/nucular/Js141); RetroShield 4004 runs it on a real chip.
+- Gate-level: Nicholas Carlini, IOCCC 2024 winner (https://www.ioccc.org/2024/carlini/index.html,
+  https://nicholas.carlini.com/writing/2025/ioccc-intel-4004-in-4004-bytes-c.html): a logic-gate
+  simulator running a ~200k-gate *re-designed, microcoded* 4004 that runs the Busicom ROM. Not the
+  Intel netlist.
+- Physical transistor level: Klaus Scheffler & Lajos Kintli's discrete-transistor 4004 ran the
+  original 141-PF firmware and printed SQRT(2) (4004.com news, 20 Feb 2023); in Nov 2025 their full
+  discrete MCS-4 incl. 4003s runs the whole calculator (https://www.4004.com/news/). Built from the
+  schematics, in hardware.
+- Lajos Kintli's i400x analyzer (source/analyzer/readme.txt; https://www.4004.com/research/mcs4/):
+  extracts netlists from the masks of the 4001/4002/4003/4004, matches them to the schematics, and
+  simulates them at switch level, standalone (CPU with built-in MCS-4 model) or networked over TCP
+  (CPU, ROM and RAM instances; ROM contents set by redrawing the metal mask). It keeps the last 10,000
+  clock phases, is interactive/animated, Windows-only. 4003 support is "limited ... the testability in
+  the simulator is partly solved". Its readme does not mention running the Busicom firmware, nor any
+  printer/keyboard model. I could not run it (Windows binary; not executed) and did not find any
+  report of the 141-PF being run on it. So it is POSSIBLE that Kintli has run it privately; unverified.
+- Therefore what would be new (as far as I can find): running the complete 141-PF firmware, with
+  keyboard and printer modelled, on a switch-level simulation of the netlist extracted from the 4004
+  masks, at ~10k cycles/s on a laptop, cross-checked bus-cycle by bus-cycle against an instruction-level
+  emulator. Modest novelty; the strong claim would be the cycle-exact cross-check over a whole
+  calculation, and a browser version on the die photo.
+
+B3. What had to be modelled, and speed
+--------------------------------------
+Implemented (experiments/busicom/busicom.c, ~200 lines, uses sim/board.c, sim/mcs4.c, sim/ref4004.c,
+sim/switchsim.c unmodified): behavioural 4003s (rising-edge shift; keyboard 10-bit, printer 20-bit),
+key matrix with a scripted key schedule, drum sector/index timing in instruction cycles (2593 cycles
+per 28 ms sector, 463-cycle pulse), hammer-fire decoding to text, paper advance, lamps. 4001/4002 are
+the existing behavioural models (rom_in / ram_port were sufficient). Time taken: ~1.5 h including
+working out the polarities (TEST active low; index active high; a column is selected by a 0 in the
+shifter; character row = R12 counter, which lags the pulse count by one).
+Not modelled: paper-advance button, decimal-point/rounding switches (read as 0), contact bounce, the
+real 4003 enable/serial-out pins, red/black only as a flag.
+
+Cycle counts (reference emulator, default schedule: key held 4 sectors, 40 sectors apart):
+  idle: keyboard routine $0B0 once per sector (2593 cycles); ~35% of cycles are not in drum-wait loops.
+  The calculator's pseudo-code interpreter runs paced by the drum (keyboard scan + one step per
+  sector), so wall-clock latency, not instruction count, is what matters:
+  - key '+' to printed line: ~42k cycles (0.45 s of 1971 time)
+  - '=' to printed total line: ~42k cycles
+  - SQRT key to printed 1.4142135623730: ~242k cycles (2.6 s); 15.2k cycles executed in the $400 page
+  - whole "18 + 42 + =" session as scripted: 850k cycles; "2 SQRT": 450k cycles
+Transistor-level speed: 11k cycles/s (README) on an idle core; measured 7.5k cycles/s while the
+machine was loaded. So: one printed line ~4-6 s, SQRT ~25-35 s, scripted sessions ~1.5 min and
+~45 s. A JS/browser port (sim4004.js) would be several times slower: workable for idle + one line,
+slow for SQRT.
+
+B4. Pilot result
+----------------
+Done, beyond the minimum asked:
+  1. Idle: the firmware reaches its main loop and calls the keyboard routine $0B0 once per drum sector,
+     first at cycle 467, on the reference emulator AND on the transistor-level chip.
+  2. Cross-check, 30,000 cycles idle: activity logs (every fetch, SRC, I/O) identical (32,733 lines;
+     the reference log has one extra trailing fetch because it stops at an instruction boundary).
+  3. "2 SQRT", 450,000 cycles: transistor level prints
+        "              2| SQ"
+        "1.4142135623730| SQ"
+     log identical to the reference (491,290 lines, byte-for-byte). 61.8 s CPU (7285 cycles/s, machine
+     loaded by the lesion run in parallel).
+  4. "1 8 + 4 2 + =", 850,000 cycles: prints 18 +, 42 +, 60 * ; log identical except the trailing
+     fetch (922,890 lines). 114.7 s CPU (7412 cycles/s).
+Files: experiments/busicom/{busicom.c, extract_rom.py, build.sh}, build/busicom.bin, build/*.log,
+build/*.out. Rebuild: sh experiments/busicom/build.sh (from the repo root).
+
+B5. Risks
+---------
+- Peripheral polarity/timing guesses: verified only by the firmware behaving sensibly on the reference
+  and printing the documented SQRT(2) result; a real 141-PF timing (pulse width, index phase) may differ
+  slightly; the firmware is tolerant (drum-synchronised).
+- Reset: the board feeds NOPs during reset (README caveat about the first instruction); the firmware
+  starts with CLB at $000, which is benign.
+- The ref and board models sample peripherals per instruction vs per cycle; the cross-check matched,
+  but TEST changes in the middle of a two-cycle JCN could in principle diverge (JCN samples TEST in
+  its first cycle per vectors/README, consistent with the reference).
+- Licence: listing comments CC BY-NC-SA 2.5; the ROM bytes themselves stated as not copyrighted.
+  Anything published with the netlist stays CC BY-NC-SA 3.0 (non-commercial) anyway.
+
+B6. Effort and recommended scope
+--------------------------------
+Already done in the pilot: ROM extraction, peripherals, ref + transistor runs, log cross-check.
+Remaining for a presentable result:
+  - tidy CLI (key scripts, printing to a "paper roll" text/SVG), Makefile target, test that
+    cross-checks a few calculations (add, multiply, divide, SQRT, memory keys): 0.5 day
+  - full cross-check of a long session (several million cycles) on 12 cores in parallel sessions: hours
+  - browser version: drum timing and 4003/keyboard model ported to JS, calculator keypad UI next to the
+    die photo with live node colouring: 1.5-2 days; performance needs checking (JS sim speed)
+  Total: ~2-3 days. Recommended: do the CLI + regression test first (cheap, strong evidence that the
+  extracted netlist runs real 1971 application code), then the web page for the 55th-anniversary story.

@@ -1,0 +1,71 @@
+61 lesions
+  stuck-open: n=26 global=0 (0%) broad=0 (0%) partial=4 (15%) reset=0 (0%) none=22 (85%)
+      load      global=0 broad=0 partial=0 reset=0 none=1
+      pass      global=0 broad=0 partial=0 reset=0 none=2
+      protect   global=0 broad=0 partial=0 reset=0 none=8
+      pulldown  global=0 broad=0 partial=4 reset=0 none=9
+      pullup    global=0 broad=0 partial=0 reset=0 none=2
+  stuck-closed: n=35 global=4 (11%) broad=0 (0%) partial=3 (9%) reset=0 (0%) none=28 (80%)
+      pass      global=0 broad=0 partial=0 reset=0 none=3
+      protect   global=4 broad=0 partial=0 reset=0 none=4
+      pulldown  global=0 broad=0 partial=3 reset=0 none=8
+      pullup    global=0 broad=0 partial=0 reset=0 none=13
+partial lesions: failing groups
+   1281c pulldown (578,1505) nbad= 10 reset=0  ISZ(10/16)
+   1910o pulldown (519,2152) nbad=  6 reset=0  NOP/undef(2/18) ACC-group(4/14)
+   1911c pulldown (538,2152) nbad=  1 reset=0  ACC-group(1/14)
+   1948o pulldown (612,2192) nbad=  1 reset=0  ACC-group(1/14)
+   1989c pulldown (544,2231) nbad=  1 reset=0  ACC-group(1/14)
+   1989o pulldown (544,2231) nbad=  1 reset=0  ACC-group(1/14)
+   2134o pulldown (574,2412) nbad=  1 reset=0  ACC-group(1/14)
+no-effect lesions
+     35c protect  (192,282) g=VSS2 TEST-VSS2
+     35o protect  (192,282) g=VSS2 TEST-VSS2
+    105c protect  (192,338) g=VSS2 RESET-VSS2
+    105o protect  (192,338) g=VSS2 RESET-VSS2
+    277c protect  (1786,458) g=VSS2 VSS2-PHI2
+    277o protect  (1786,458) g=VSS2 VSS2-PHI2
+    365c protect  (1786,516) g=VSS2 VSS2-PHI1
+    365o protect  (1786,516) g=VSS2 VSS2-PHI1
+    413c pullup   (123,595) g=107 SYNC-VDD
+    443o pulldown (1188,570) g=537 VSS2-94
+    450o pulldown (1346,570) g=540 VSS2-95
+    522c pulldown (1160,628) g=118 VSS2-536
+    525c pulldown (1286,628) g=124 VSS2-539
+    534o load     (1336,645) g=VDD VDD-540
+    619o pulldown (756,716) g=570 VSS2-141
+    627c pulldown (943,733) g=572 VSS2-964
+    689c pullup   (1230,803) g=579 VDD-123
+    771c pullup   (675,906) g=598 VDD-170
+    774c pullup   (753,906) g=600 VDD-166
+    784c pass     (1362,900) g=180 606-971
+    807o pulldown (227,915) g=601 VSS2-596
+    867c pulldown (178,991) g=631 VSS2-986
+    892o pulldown (1261,1020) g=PHI2 VSS2-87
+    947c pulldown (814,1074) g=PHI1 VSS2-621
+    990o pulldown (492,1114) g=206 VSS2-198
+   1070c pullup   (1464,1251) g=248 VDD-246
+   1175c pullup   (1408,1342) g=254 VDD-252
+   1304c pass     (521,1517) g=199 1048-1051
+   1420c pullup   (1584,1643) g=680 VDD-212
+   1440c pullup   (1598,1645) g=678 VDD-261
+   1490c pullup   (346,1686) g=299 VDD-314
+   1661c pass     (1525,1866) g=290 726-1069
+   1661o pass     (1525,1866) g=290 726-1069
+   1669o pulldown (1484,1880) g=324 VSS2-319
+   1808o pass     (902,2048) g=193 752-1083
+   1835c pullup   (1159,2084) g=763 VDD-328
+   1948c pulldown (612,2192) g=751 VSS2-371
+   1975o pullup   (1584,2214) g=193 VDD-791
+   2035c pullup   (1159,2285) g=802 VDD-329
+   2121o protect  (1780,2386) g=VSS2 VSS2-D2
+   2122c pullup   (1430,2369) g=407 VDD-340
+   2144o protect  (895,2411) g=VSS2 VSS2-D0
+   2146c pulldown (1024,2404) g=820 VSS2-821
+   2146o pulldown (1024,2404) g=820 VSS2-821
+   2147o protect  (1362,2412) g=VSS2 VSS2-D1
+   2177c pullup   (479,2459) g=824 VDD-825
+   2186o pullup   (1464,2468) g=826 12-VDD
+   2227c pulldown (1719,2609) g=422 VSS2-822
+   2227o pulldown (1719,2609) g=422 VSS2-822
+   2234o protect  (1850,2619) g=VSS2 VSS2-D3

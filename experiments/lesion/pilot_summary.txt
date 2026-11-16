@@ -1,0 +1,181 @@
+400 lesions
+  stuck-open: n=200 global=131 (66%) broad=8 (4%) partial=36 (18%) reset=7 (4%) none=18 (9%)
+      load      global=30 broad=1 partial=9 reset=0 none=1
+      pass      global=39 broad=4 partial=7 reset=2 none=2
+      pulldown  global=49 broad=3 partial=18 reset=5 none=13
+      pullup    global=13 broad=0 partial=2 reset=0 none=2
+  stuck-closed: n=200 global=101 (50%) broad=6 (3%) partial=22 (11%) reset=3 (2%) none=68 (34%)
+      load      global=0 broad=0 partial=0 reset=0 none=41
+      pass      global=41 broad=3 partial=6 reset=1 none=3
+      pulldown  global=56 broad=3 partial=16 reset=2 none=11
+      pullup    global=4 broad=0 partial=0 reset=0 none=13
+partial lesions: failing groups
+      2o pulldown (358,247) nbad=166 reset=0  NOP/undef(11/18) JCN(7/16) FIM(5/8) SRC(6/8) FIN(4/8) JIN(6/8) JUN(13/16) JMS(8/16) INC(10/16) ISZ(12/16) ADD(12/16) SUB(14/16) LD(11/16) XCH(9/16) BBL(9/16) LDM(10/16) IO-write(3/8) IO-read(6/8) ACC-group(10/14)
+      6c pulldown (1257,254) nbad=182 reset=1  NOP/undef(12/18) JCN(11/16) FIM(6/8) SRC(7/8) FIN(6/8) JIN(7/8) JUN(12/16) JMS(13/16) INC(12/16) ISZ(11/16) ADD(11/16) SUB(13/16) LD(9/16) XCH(14/16) BBL(8/16) LDM(11/16) IO-write(7/8) IO-read(2/8) ACC-group(10/14)
+     39o load     (283,271) nbad=166 reset=0  NOP/undef(11/18) JCN(7/16) FIM(5/8) SRC(6/8) FIN(4/8) JIN(6/8) JUN(13/16) JMS(8/16) INC(10/16) ISZ(12/16) ADD(12/16) SUB(14/16) LD(11/16) XCH(9/16) BBL(9/16) LDM(10/16) IO-write(3/8) IO-read(6/8) ACC-group(10/14)
+     47c pass     (1384,272) nbad=195 reset=0  NOP/undef(13/18) JCN(11/16) FIM(6/8) SRC(7/8) FIN(6/8) JIN(5/8) JUN(11/16) JMS(12/16) INC(12/16) ISZ(13/16) ADD(12/16) SUB(12/16) LD(15/16) XCH(10/16) BBL(12/16) LDM(14/16) IO-write IO-read(5/8) ACC-group(11/14)
+     47o pass     (1384,272) nbad=195 reset=0  NOP/undef(13/18) JCN(11/16) FIM(6/8) SRC(7/8) FIN(6/8) JIN(5/8) JUN(11/16) JMS(12/16) INC(12/16) ISZ(13/16) ADD(12/16) SUB(12/16) LD(15/16) XCH(10/16) BBL(12/16) LDM(14/16) IO-write IO-read(5/8) ACC-group(11/14)
+    188c pass     (1243,377) nbad=191 reset=0  NOP/undef(11/18) JCN(11/16) FIM(6/8) SRC(6/8) FIN JIN JUN(13/16) JMS(12/16) INC(13/16) ISZ(13/16) ADD(10/16) SUB(10/16) LD(13/16) XCH(11/16) BBL(13/16) LDM(11/16) IO-write(7/8) IO-read(5/8) ACC-group(10/14)
+    188o pass     (1243,377) nbad=191 reset=0  NOP/undef(12/18) JCN(11/16) FIM(6/8) SRC(6/8) FIN(7/8) JIN JUN(13/16) JMS(12/16) INC(13/16) ISZ(13/16) ADD(10/16) SUB(10/16) LD(13/16) XCH(11/16) BBL(13/16) LDM(11/16) IO-write(7/8) IO-read(5/8) ACC-group(10/14)
+    212o pass     (623,400) nbad=195 reset=0  NOP/undef(16/18) JCN(12/16) FIM(7/8) SRC(5/8) FIN(6/8) JIN(6/8) JUN(13/16) JMS(12/16) INC(13/16) ISZ(13/16) ADD(12/16) SUB(12/16) LD(11/16) XCH(11/16) BBL(13/16) LDM(10/16) IO-write(5/8) IO-read(5/8) ACC-group(13/14)
+    225c pass     (1319,401) nbad=194 reset=1  NOP/undef(11/18) JCN(13/16) FIM(5/8) SRC(6/8) FIN(7/8) JIN(7/8) JUN(10/16) JMS(10/16) INC(15/16) ISZ(13/16) ADD(15/16) SUB(11/16) LD(10/16) XCH(12/16) BBL(14/16) LDM(12/16) IO-write(5/8) IO-read ACC-group(10/14)
+    225o pass     (1319,401) nbad=195 reset=0  NOP/undef(11/18) JCN(13/16) FIM(5/8) SRC(6/8) FIN(7/8) JIN(7/8) JUN(11/16) JMS(10/16) INC(15/16) ISZ(13/16) ADD(15/16) SUB(11/16) LD(10/16) XCH(12/16) BBL(14/16) LDM(12/16) IO-write(5/8) IO-read ACC-group(10/14)
+    309o load     (924,454) nbad= 24 reset=0  FIM(5/8) FIN(7/8) INC(3/16) ISZ(4/16) XCH(5/16)
+    627o pulldown (943,733) nbad=  0 reset=1  
+    628c pulldown (963,733) nbad=  0 reset=1  
+    628o pulldown (963,733) nbad=  0 reset=1  
+    653c pulldown (308,746) nbad=  1 reset=0  JUN(1/16)
+    658o pulldown (1202,748) nbad=  1 reset=0 pins-only  FIN(1/8)
+    664o pulldown (1449,749) nbad=  1 reset=0 pins-only  FIN(1/8)
+    784o pass     (1362,900) nbad=  0 reset=1  
+    805c pass     (1533,913) nbad=  0 reset=1  
+    805o pass     (1533,913) nbad=  0 reset=1  
+    808c pulldown (1221,920) nbad=  0 reset=1  
+    808o pulldown (1221,920) nbad=  0 reset=1  
+    905c pulldown (420,1035) nbad= 26 reset=0  JCN(10/16) ISZ
+    918c pass     (1182,1039) nbad= 72 reset=0 pins-only  FIM(7/8) SRC FIN(7/8) JIN INC(7/16) ISZ(7/16) ADD(7/16) SUB(7/16) LD(7/16) XCH(7/16)
+    957o pulldown (1559,1080) nbad=  0 reset=1  
+    987o pulldown (1562,1113) nbad=  0 reset=1  
+    988o load     (694,1116) nbad= 25 reset=0  JCN(9/16) ISZ
+    990c pulldown (492,1114) nbad= 25 reset=0  JCN(9/16) ISZ
+   1019c pulldown (762,1146) nbad=  8 reset=0  FIN
+   1019o pulldown (762,1146) nbad= 16 reset=0  FIN JIN
+   1084c pulldown (840,1259) nbad= 32 reset=0  JCN ISZ
+   1113c pass     (1045,1279) nbad= 32 reset=0  INC ISZ
+   1113o pass     (1045,1279) nbad= 15 reset=0  SRC JIN(7/8)
+   1140o pulldown (1208,1296) nbad=  8 reset=0  IO-write
+   1190c pulldown (839,1347) nbad= 32 reset=0  JCN ISZ
+   1195c pulldown (971,1347) nbad=  7 reset=0 pins-only  FIN(7/8)
+   1195o pulldown (971,1347) nbad=  7 reset=0 pins-only  FIM(7/8)
+   1216o load     (730,1390) nbad= 16 reset=0  FIN JIN
+   1222o load     (964,1398) nbad=  7 reset=0 pins-only  FIN(7/8)
+   1251o load     (1104,1466) nbad=  1 reset=0  ACC-group(1/14)
+   1254o load     (838,1466) nbad=  1 reset=0  ACC-group(1/14)
+   1274o load     (426,1497) nbad= 14 reset=0  JCN(13/16) ISZ(1/16)
+   1281o pulldown (578,1505) nbad=  9 reset=0  JCN(9/16)
+   1293c pulldown (468,1515) nbad= 14 reset=0  JCN(13/16) ISZ(1/16)
+   1293o pulldown (468,1515) nbad= 25 reset=0  JCN(9/16) ISZ
+   1304o pass     (521,1517) nbad= 25 reset=0  JCN(9/16) ISZ
+   1322c pulldown (1222,1533) nbad=  1 reset=0  IO-read(1/8)
+   1322o pulldown (1222,1533) nbad=  1 reset=0  IO-write(1/8)
+   1326c pass     (521,1530) nbad= 14 reset=0  JCN(13/16) ISZ(1/16)
+   1326o pass     (521,1530) nbad= 25 reset=0  JCN(9/16) ISZ
+   1330o load     (509,1557) nbad= 25 reset=0  JCN(9/16) ISZ
+   1334c pass     (606,1554) nbad= 16 reset=0  ISZ
+   1334o pass     (606,1554) nbad=  1 reset=0  ISZ(1/16)
+   1375o load     (662,1580) nbad= 12 reset=0  JCN(12/16)
+   1387c pulldown (1495,1595) nbad=203 reset=0  NOP/undef(10/18) JCN(12/16) FIM(6/8) SRC(7/8) FIN(7/8) JIN(5/8) JUN(14/16) JMS(13/16) INC(12/16) ISZ(14/16) ADD(14/16) SUB(14/16) LD(14/16) XCH(11/16) BBL(13/16) LDM(15/16) IO-write(6/8) IO-read(7/8) ACC-group(9/14)
+   1402c pass     (696,1604) nbad=  6 reset=0  JCN(6/16)
+   1402o pass     (696,1604) nbad=  4 reset=0  JCN(4/16)
+   1403c pulldown (727,1600) nbad=  3 reset=0  JCN(3/16)
+   1403o pulldown (727,1600) nbad=  4 reset=0  JCN(4/16)
+   1453c pulldown (478,1656) nbad=  8 reset=0 pins-only  SRC
+   1480o pulldown (1283,1676) nbad= 16 reset=0  SUB
+   1506o pulldown (1168,1692) nbad=  1 reset=0  ACC-group(1/14)
+   1509o pulldown (1249,1692) nbad=  1 reset=0  IO-read(1/8)
+   1511c pulldown (752,1694) nbad=165 reset=0  FIM(7/8) SRC(7/8) FIN JIN JUN(15/16) JMS(15/16) ADD SUB LD XCH(12/16) BBL(15/16) LDM(15/16) IO-read(2/8) ACC-group(13/14)
+   1511o pulldown (752,1694) nbad= 32 reset=0  INC ISZ
+   1624c pulldown (1074,1816) nbad=  1 reset=0  ACC-group(1/14)
+   1835o pullup   (1159,2084) nbad=  1 reset=0  ACC-group(1/14)
+   1903o pulldown (427,2151) nbad=185 reset=0  NOP/undef(14/18) JCN(13/16) FIM(6/8) SRC(7/8) FIN(6/8) JIN(5/8) JUN(11/16) JMS(8/16) INC(11/16) ISZ(13/16) ADD(11/16) SUB(13/16) LD(13/16) XCH(11/16) BBL(8/16) LDM(13/16) IO-write(6/8) IO-read(7/8) ACC-group(9/14)
+   1910c pulldown (519,2152) nbad=  1 reset=0  ACC-group(1/14)
+   1951c pulldown (1250,2203) nbad= 11 reset=0  INC(3/16) ISZ(4/16) SUB(1/16) IO-read(1/8) ACC-group(2/14)
+   1951o pulldown (1250,2203) nbad= 11 reset=0  ADD(3/16) SUB(6/16) IO-read(1/8) ACC-group(1/14)
+   1974o pass     (1477,2217) nbad= 13 reset=0  SUB(12/16) IO-read(1/8)
+   1994o pulldown (1269,2240) nbad= 20 reset=0  INC(8/16) ISZ(3/16) ADD(4/16) SUB(5/16)
+   2035o pullup   (1159,2285) nbad= 39 reset=0  ADD SUB IO-read(2/8) ACC-group(5/14)
+   2040c pulldown (730,2298) nbad=  1 reset=0  ISZ(1/16)
+   2040o pulldown (730,2298) nbad=  3 reset=0  ISZ(3/16)
+   2047o pulldown (1353,2304) nbad= 14 reset=0  ADD(4/16) SUB(6/16) ACC-group(4/14)
+   2057o pass     (1088,2307) nbad=  1 reset=0  ACC-group(1/14)
+   2075c pass     (1338,2334) nbad=  8 reset=0  ADD(1/16) SUB(6/16) ACC-group(1/14)
+   2090c pulldown (1284,2340) nbad=  8 reset=0  ADD(5/16) SUB(2/16) ACC-group(1/14)
+   2090o pulldown (1284,2340) nbad=  8 reset=0  ADD(1/16) SUB(6/16) ACC-group(1/14)
+   2209o pulldown (1575,2550) nbad=215 reset=0 pins-only  NOP/undef(10/18) JCN(15/16) FIM SRC FIN JIN JUN JMS INC ISZ ADD(8/16) SUB(8/16) LD XCH BBL(8/16) LDM(8/16) IO-write IO-read ACC-group
+no-effect lesions
+     39c load     (283,271) g=VDD 26-VDD
+    309c load     (924,454) g=VDD VDD-68
+    351c load     (852,492) g=VDD VDD-78
+    413c pullup   (123,595) g=107 SYNC-VDD
+    443o pulldown (1188,570) g=537 VSS2-94
+    450o pulldown (1346,570) g=540 VSS2-95
+    522c pulldown (1160,628) g=118 VSS2-536
+    525c pulldown (1286,628) g=124 VSS2-539
+    534c load     (1336,645) g=VDD VDD-540
+    534o load     (1336,645) g=VDD VDD-540
+    612c load     (378,716) g=VDD VDD-963
+    619o pulldown (756,716) g=570 VSS2-141
+    627c pulldown (943,733) g=572 VSS2-964
+    647c load     (422,745) g=VDD VDD-146
+    665c load     (1551,753) g=VDD VDD-566
+    689c pullup   (1230,803) g=579 VDD-123
+    696c load     (1022,790) g=VDD VDD-165
+    771c pullup   (675,906) g=598 VDD-170
+    774c pullup   (753,906) g=600 VDD-166
+    781c load     (1022,893) g=VDD VDD-183
+    784c pass     (1362,900) g=180 606-971
+    807o pulldown (227,915) g=601 VSS2-596
+    823c load     (733,929) g=VDD VDD-600
+    824c load     (560,937) g=VDD VDD-617
+    857c load     (514,965) g=VDD VDD-612
+    867c pulldown (178,991) g=631 VSS2-986
+    868c load     (1321,983) g=VDD VDD-637
+    874c load     (993,990) g=VDD VDD-618
+    884c load     (944,1024) g=VDD VDD-632
+    892o pulldown (1261,1020) g=PHI2 VSS2-87
+    947c pulldown (814,1074) g=PHI1 VSS2-621
+    988c load     (694,1116) g=VDD VDD-647
+    990o pulldown (492,1114) g=206 VSS2-198
+   1070c pullup   (1464,1251) g=248 VDD-246
+   1175c pullup   (1408,1342) g=254 VDD-252
+   1212c load     (564,1396) g=VDD VDD-238
+   1216c load     (730,1390) g=VDD VDD-213
+   1222c load     (964,1398) g=VDD VDD-223
+   1227c load     (1276,1400) g=VDD VDD-233
+   1251c load     (1104,1466) g=VDD VDD-274
+   1254c load     (838,1466) g=VDD VDD-265
+   1274c load     (426,1497) g=VDD VDD-206
+   1281c pulldown (578,1505) g=240 VSS2-668
+   1304c pass     (521,1517) g=199 1048-1051
+   1330c load     (509,1557) g=VDD VDD-671
+   1375c load     (662,1580) g=VDD VDD-674
+   1420c pullup   (1584,1643) g=680 VDD-212
+   1440c pullup   (1598,1645) g=678 VDD-261
+   1463c load     (1541,1682) g=VDD VDD-663
+   1490c pullup   (346,1686) g=299 VDD-314
+   1496c load     (731,1706) g=VDD VDD-694
+   1544c load     (538,1730) g=VDD VDD-1062
+   1590c load     (1125,1784) g=VDD VDD-708
+   1614c load     (1536,1815) g=VDD VDD-315
+   1637c load     (1056,1852) g=VDD VDD-719
+   1642c load     (1009,1853) g=VDD VDD-717
+   1661c pass     (1525,1866) g=290 726-1069
+   1661o pass     (1525,1866) g=290 726-1069
+   1669o pulldown (1484,1880) g=324 VSS2-319
+   1710c load     (1541,1934) g=VDD VDD-737
+   1808o pass     (902,2048) g=193 752-1083
+   1815c load     (602,2066) g=VDD VDD-758
+   1819c load     (300,2055) g=VDD VDD-760
+   1835c pullup   (1159,2084) g=763 VDD-328
+   1837c load     (1685,2080) g=VDD VDD-1084
+   1884c load     (873,2135) g=VDD VDD-1088
+   1910o pulldown (519,2152) g=358 VSS2-377
+   1911c pulldown (538,2152) g=358 VSS2-376
+   1948c pulldown (612,2192) g=751 VSS2-371
+   1948o pulldown (612,2192) g=751 VSS2-371
+   1960c load     (309,2208) g=VDD VDD-1091
+   1975o pullup   (1584,2214) g=193 VDD-791
+   1989c pulldown (544,2231) g=383 VSS2-376
+   1989o pulldown (544,2231) g=383 VSS2-376
+   2035c pullup   (1159,2285) g=802 VDD-329
+   2122c pullup   (1430,2369) g=407 VDD-340
+   2134o pulldown (574,2412) g=376 VSS2-413
+   2146c pulldown (1024,2404) g=820 VSS2-821
+   2146o pulldown (1024,2404) g=820 VSS2-821
+   2177c pullup   (479,2459) g=824 VDD-825
+   2186o pullup   (1464,2468) g=826 12-VDD
+   2210c load     (1782,2538) g=VDD VDD-422
+   2212c load     (1626,2532) g=VDD VDD-835
+   2227c pulldown (1719,2609) g=422 VSS2-822
+   2227o pulldown (1719,2609) g=422 VSS2-822
+   2238c load     (1171,2620) g=VDD VDD-838

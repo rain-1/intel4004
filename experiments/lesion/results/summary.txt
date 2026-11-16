@@ -1,0 +1,772 @@
+LESION STUDY: FULL SWEEP
+4484 lesions (2242 transistors), 2046 tests + 3 reset tests each
+CPU time in lesion runs: 6.84 h (5.5 s per lesion)
+
+Severity (global = NOP fails or >= 240 opcodes; broad = >= 12 of 19 groups; partial = fewer):
+                                 stuck-open     stuck-closed   closed, no loads
+  global                       1510 (67.4%)     1226 (54.7%)       1226 (67.5%)
+  broad                           8 ( 0.4%)        2 ( 0.1%)          2 ( 0.1%)
+  partial                       446 (19.9%)      326 (14.5%)        326 (18.0%)
+  reset-only                    110 ( 4.9%)       48 ( 2.1%)         48 ( 2.6%)
+  none                          168 ( 7.5%)      640 (28.5%)        213 (11.7%)
+
+Effect class (first match in this order; 'data' = acc/carry/index registers):
+                                 stuck-open     stuck-closed   closed, no loads
+  non-convergence                79 ( 3.5%)       88 ( 3.9%)         88 ( 4.8%)
+  SYNC/timing                    76 ( 3.4%)       43 ( 1.9%)         43 ( 2.4%)
+  data + PC/stack               795 (35.5%)      670 (29.9%)        670 (36.9%)
+  register/acc/carry            358 (16.0%)      250 (11.2%)        250 (13.8%)
+  PC/stack                      495 (22.1%)      398 (17.8%)        398 (21.9%)
+  CM lines                      111 ( 5.0%)       75 ( 3.3%)         75 ( 4.1%)
+  bus contents only              30 ( 1.3%)       26 ( 1.2%)         26 ( 1.4%)
+  undocumented X2/X3 only        20 ( 0.9%)        4 ( 0.2%)          4 ( 0.2%)
+  reset only                    110 ( 4.9%)       48 ( 2.1%)         48 ( 2.6%)
+  no effect                     168 ( 7.5%)      640 (28.5%)        213 (11.7%)
+
+Failure kinds present (multi-label; % of lesions with any failing test):
+  stuck-open (n=1964): ACC=1226 CY=1104 REG=952 PC=1407 STACK=729 CMRAM=474 ADDR=827 MBUS=36 X1=161 XDOC=856 XUND=1119 DRV=229 CM=476 SYNC=78 NOSYNC=75 UNST=79
+  stuck-closed (n=1554): ACC=976 CY=897 REG=798 PC=1176 STACK=589 CMRAM=378 ADDR=681 MBUS=22 X1=152 XDOC=702 XUND=924 DRV=190 CM=375 SYNC=45 NOSYNC=45 UNST=88
+
+Severity by device class:
+  stuck-open
+    load      n= 427 global=297 broad=0 partial=76 reset-only=29 none=25
+    pullup    n= 170 global=147 broad=0 partial=13 reset-only=0 none=10
+    pulldown  n=1033 global=599 broad=8 partial=265 reset-only=46 none=115
+    pass      n= 604 global=467 broad=0 partial=92 reset-only=35 none=10
+    protect   n=   8 global=0 broad=0 partial=0 reset-only=0 none=8
+  stuck-closed
+    load      n= 427 global=0 broad=0 partial=0 reset-only=0 none=427
+    pullup    n= 170 global=38 broad=0 partial=2 reset-only=0 none=130
+    pulldown  n=1033 global=729 broad=0 partial=231 reset-only=31 none=42
+    pass      n= 604 global=455 broad=2 partial=93 reset-only=17 none=37
+    protect   n=   8 global=4 broad=0 partial=0 reset-only=0 none=4
+
+Artefact flags (lesions with the flag / of which no effect):
+  stuck-open: clock=76/10 dynamic-node=899/69 ext-pin=83/14 floats=1196/67 nosync=75/0 parallel=2/2 settle-cap=83/0
+  stuck-closed: clock=76/13 contention=792/68 dynamic-node=899/165 ext-pin=83/18 floats=48/0 nosync=45/0 parallel=2/0 settle-cap=90/0
+
+No-effect lesions by explanation (first match in this order):
+  stuck-open: 168 no-effect
+         0  by construction: load already always on
+         8  by construction: protection device never conducts
+         0  by construction: gate node fed only by loads (always on)
+         0  gate constant in the intact chip (device already always on)
+        17  gate constant in the intact chip (device already always off)
+         7  ideal external pin driver
+         2  parallel duplicate device
+         0  VSS-wins resolution of a fight
+        63  node keeps charge (no leakage)
+         0  clocked device (no delays modelled)
+        71  unexplained
+  stuck-closed: 640 no-effect
+       427  by construction: load already always on
+         0  by construction: protection device never conducts
+        66  by construction: gate node fed only by loads (always on)
+        16  gate constant in the intact chip (device already always on)
+         0  gate constant in the intact chip (device already always off)
+        10  ideal external pin driver
+         0  parallel duplicate device
+        66  VSS-wins resolution of a fight
+         0  node keeps charge (no leakage)
+         0  clocked device (no delays modelled)
+        55  unexplained
+  unexplained in total: 126 (71 open, 55 closed)
+  unexplained by device class: pulldown=102 pass=23 load=1
+  flags among unexplained: dynamic-node=36
+
+Follow-up of the unexplained nulls (followup.py: lockstep internal comparison + 300 random programs):
+     53  masked: only the device's own nodes differ
+     47  masked: internal difference does not reach the pins
+     13  masked: stack-pointer bit consistently inverted (row relabelling)
+      7  test gap
+      6  silent
+    test gap T997o: caught by 228/300 programs; minimal: state acc=F cy=0 dcl=7 pc=6D8 stack=AC8,535,E45 rot=1 r=4FE3FEAFB8986A78 ; program: 37[T0] AB[T1]
+    test gap T1041c: caught by 221/300 programs; minimal: state acc=F cy=0 dcl=7 pc=6D8 stack=AC8,535,E45 rot=1 r=4FE3FEAFB8986A78 ; program: 37[T0] AB[T1]
+    test gap T1466o: caught by 38/300 programs; minimal: state acc=3 cy=1 dcl=6 pc=ECD stack=88D,9FF,BF5 rot=0 r=210A0CF0DB711211 ; program: DD[T1] FA[T1]
+    test gap T1785o: caught by 5/300 programs; minimal: state acc=D cy=0 dcl=0 pc=894 stack=8B9,33E,D16 rot=3 r=97D196D25F9E0CBF ; program: C1[T1] 1E[T1] 1C[T1]
+    test gap T1894o: caught by 7/300 programs; minimal: state acc=F cy=0 dcl=1 pc=256 stack=51A,3B0,52A rot=1 r=3EA670A9DD725E1F ; program: C2[T1] 1D[T1] 55[T0]
+    test gap T1973o: caught by 5/300 programs; minimal: state acc=4 cy=0 dcl=1 pc=554 stack=5F3,4E1,E42 rot=0 r=5E6D7F4FE8D25B15 ; program: 14[T0] 8D[T1]
+    test gap T2077o: caught by 6/300 programs; minimal: state acc=B cy=0 dcl=2 pc=6FE stack=956,BD3,2B4 rot=2 r=9CEC954DCF35C989 ; program: C5[T0] 9D[T0] 85[T0] 96[T1] BB[T0] E8(in=D)[T0] 17[T1] 12[T0]
+
+Distinct transistor signatures (instructions broken in either mode + failure kinds + reset): 289
+
+FUNCTIONAL CLUSTERS (per transistor; Jaccard average linkage, cut 0.30)
+  spread = median distance of members from their median point (layout px; die is 1968 x 2706);
+  p = fraction of 2000 random same-size transistor sets at least as compact; blocks = behaviourally
+  named region of the members (~ = nearest named neighbours)
+  C0   n= 612 spread=   667 p=0.0005 at (1149,1795)  every instruction; idle: ACC/CY,REG,PC/STACK,CM,BUS,XUND [ACC/CY,REG,PC/STACK,CM,BUS,XUND]
+        blocks: instruction decode 416, timing 171, accumulator/carry 19, pad PHI2 5
+  C1   n= 447 spread=   321 p=0.0005 at (673,655)  every instruction; idle: PC/STACK [PC/STACK,BUS]
+        blocks: instruction decode 166, PC path 95, timing 93, address stack array 79
+  C2   n= 417 spread=   225 p=0.0005 at (1319,506)  every instruction; idle: REG [ACC/CY,REG,PC/STACK,BUS,XUND]
+        blocks: instruction decode 233, index registers 128, timing 54, pad PHI2 2
+  C3   n= 158 spread=   337 p=0.0005 at (1148,1852)  every instruction; idle: ACC/CY [ACC/CY,REG,PC/STACK,XUND]
+        blocks: instruction decode 133, accumulator/carry 16, timing 9
+  C4   n= 105 spread=   383 p=0.0005 at (428,2151)  every instruction; idle: CM [CM]
+        blocks: instruction decode 45, DCL/CM-RAM 22, timing 19, accumulator/carry 9
+  C5   n=  86 spread=   322 p=0.0005 at (1205,895)  reset only
+        blocks: instruction decode 42, timing 32, PC path 5, pad PHI1 4
+  C6   n=  68 spread=   167 p=0.0005 at (601,1533)  JCN [PC/STACK]
+        some members also: ISZ
+        blocks: instruction decode 44, timing 14, accumulator/carry 5, TEST input 3
+  C7   n=  38 spread=   973 p=nan at (1069,1018)  no effect
+        blocks: instruction decode 27, accumulator/carry 4, timing 3, TEST input 1
+  C8   n=  37 spread=   338 p=0.0005 at (1266,2003)  SUB+SBM [ACC/CY]
+        some members also: JCN+ADD+XCH+BBL+WRM+RDM+RDR+ADM+RD0+IAC+CMC+CMA+RAL+RAR+DAC+DAA
+        blocks: instruction decode 32, timing 3, accumulator/carry 2
+  C9   n=  31 spread=    80 p=0.0005 at (571,2231)  KBP [ACC/CY,XUND]
+        some members also: DAC+DAA+DCL
+        blocks: accumulator/carry 22, instruction decode 9
+  C10  n=  29 spread=   118 p=0.0005 at (622,2363)  NOP+undef+JCN+FIM+SRC+FIN+JIN+JUN+JMS+INC+ISZ+ADD+SUB+LD+XCH+BBL+LDM+CMC+CMA+RAL+RAR+TCC+DAC+TCS+STC+DAA+KBP+DCL+I/O-write+I/O-read; idle: ACC/CY,XUND [ACC/CY,PC/STACK,XUND]
+        blocks: instruction decode 20, accumulator/carry 9
+  C11  n=  21 spread=   168 p=0.0005 at (1630,1936)  NOP+undef+JCN+FIM+SRC+FIN+JIN+JUN+JMS+INC+ISZ+ADD+SUB+LD+XCH+BBL+LDM+WRM+WMP+WRR+WPM+WR0+WR1+WR2+CLB+CLC+IAC+CMC+CMA+RAL+RAR+DAC+KBP+I/O-read; idle: BUS [BUS,XUND]
+        blocks: instruction decode 21
+  C12  n=  20 spread=   174 p=0.0005 at (1020,1639)  mixed [ACC/CY]
+        some members also: IAC+CMA+RAL+RAR+KBP+DCL
+        blocks: instruction decode 17, accumulator/carry 3
+  C13  n=  13 spread=   194 p=0.0005 at (1152,1152)  INC+ISZ+XCH [REG]
+        some members also: FIM+FIN+SUB+LD
+        blocks: instruction decode 13
+  C14  n=  13 spread=   208 p=0.0010 at (724,1182)  FIN+JIN [PC/STACK,BUS]
+        some members also: JCN+FIM+SRC+ISZ+XCH
+        blocks: instruction decode 10, timing 3
+  C15  n=  13 spread=   264 p=0.0005 at (557,1688)  SRC [CM]
+        some members also: FIM+JIN+INC+LD
+        blocks: timing 7, instruction decode 6
+  C16  n=  13 spread=    63 p=0.0005 at (532,2030)  DAA [ACC/CY,XUND]
+        some members also: CMC+TCS
+        blocks: accumulator/carry 7, instruction decode 6
+  C17  n=  10 spread=   229 p=0.0010 at (1101,1301)  INC+ISZ+ADD+SUB [ACC/CY,REG,PC/STACK,XUND]
+        some members also: LD+XCH+SBM+ADM+DAC+TCS+DAA
+        blocks: instruction decode 7, accumulator/carry 2, timing 1
+  C18  n=   7 spread=   192 p=0.0040 at (864,1396)  INC+ISZ [REG,PC/STACK,XUND]
+        some members also: JUN+JMS
+        blocks: instruction decode 6, accumulator/carry 1
+  C19  n=   7 spread=    50 p=0.0005 at (1172,1581)  CLC [ACC/CY]
+        some members also: CLB+RAL
+        blocks: instruction decode 7
+  C20  n=   7 spread=    83 p=0.0005 at (1147,1548)  mixed [ACC/CY]
+        some members also: CLB+IAC+CMC+DAA
+        blocks: instruction decode 7
+  C21  n=   6 spread=    45 p=0.0005 at (1208,1322)  LD [ACC/CY]
+        some members also: FIM+SRC+ADD+I/O-write
+        blocks: instruction decode 6
+  C22  n=   6 spread=    68 p=0.0005 at (1197,1557)  CLB [ACC/CY]
+        some members also: CMA+DAC
+        blocks: instruction decode 6
+  C23  n=   5 spread=    84 p=0.0020 at (971,1314)  FIN [BUS,XUND]
+        some members also: JCN+FIM
+        blocks: instruction decode 4, timing 1
+  C24  n=   5 spread=    52 p=0.0005 at (895,1346)  XCH [ACC/CY,REG,XUND]
+        some members also: FIN+SUB+LD+RAL+RAR
+        blocks: instruction decode 4, timing 1
+  C25  n=   5 spread=    27 p=0.0005 at (824,1318)  mixed [ACC/CY,REG,PC/STACK,CM,XUND]
+        some members also: JCN+JIN+ISZ
+        blocks: instruction decode 5
+  C26  n=   5 spread=    33 p=0.0005 at (1122,1614)  DAC [ACC/CY]
+        some members also: TCS+KBP
+        blocks: instruction decode 5
+  C27  n=   5 spread=   114 p=0.0045 at (836,1580)  TCS [ACC/CY,XUND]
+        some members also: ADD+SUB+CLC+CMC+CMA+RAL+RAR+TCC+DAC+STC+DAA+KBP+DCL
+        blocks: instruction decode 5
+  C28  n=   5 spread=    48 p=0.0005 at (1246,1582)  ADM [ACC/CY]
+        some members also: WPM+RDM+RDR+RD3
+        blocks: instruction decode 5
+  C29  n=   5 spread=    56 p=0.0005 at (411,2162)  only DCL [CM]
+        blocks: DCL/CM-RAM 5
+  C30  n=   4 spread=   235 p=0.0460 at (1405,1495)  only I/O-read [ACC/CY,BUS,XUND]
+        blocks: instruction decode 2, timing 1, pad PHI2 1
+  C31  n=   4 spread=    29 p=0.0005 at (555,2049)  only undef+ADD+SUB+LD+XCH+BBL+LDM+CLC+IAC+CMC+CMA+RAL+RAR+DAC+TCS+STC+DAA+KBP+DCL+I/O-read; idle: XUND [ACC/CY,XUND]
+        blocks: instruction decode 4
+  C32  n=   3 spread=    19 p=0.0025 at (89,571)  every instruction; idle: SYNC [SYNC]
+        blocks: timing 3
+  C33  n=   3 spread=    40 p=0.0095 at (670,1114)  only FIN [PC/STACK]
+        blocks: instruction decode 3
+  C34  n=   3 spread=   138 p=0.0575 at (974,1515)  undef+JCN+INC+ISZ+SUB+LD+XCH+BBL+LDM+DAA+DCL; idle: ACC/CY [ACC/CY,REG,PC/STACK,CM,XUND]
+        some members also: FIM+SRC+FIN+JIN+JUN+JMS+ADD+WR2+SBM+RDM+CLC+IAC+CMC+CMA+RAL+RAR+TCC+DAC+TCS+STC+KBP
+        blocks: instruction decode 3
+  C35  n=   3 spread=    55 p=0.0115 at (1587,1830)  only NOP+undef+JCN+FIM+FIN+JUN+JMS+ISZ+ADD+SUB+LD+BBL+LDM+CLB+CLC+IAC+CMC+CMA+RAL+RAR+TCC+TCS+DAA+KBP+I/O-write; idle: XUND [XUND]
+        blocks: instruction decode 3
+  C36  n=   3 spread=    44 p=0.0080 at (828,1989)  JCN+RAL+RAR+DAA [ACC/CY,PC/STACK,XUND]
+        some members also: I/O-write
+        blocks: accumulator/carry 2, timing 1
+  C37  n=   2 spread=   nan p=nan at (1650,1091)  only FIM+FIN+INC+ISZ+XCH [REG,BUS,XUND]
+        blocks: timing 2
+  C38  n=   2 spread=   nan p=nan at (838,1597)  undef; idle: ACC/CY,XUND [ACC/CY,XUND]
+        some members also: DAA+KBP
+        blocks: instruction decode 2
+  C39  n=   2 spread=   nan p=nan at (1502,1662)  every instruction; idle: ACC/CY,CM,XUND [ACC/CY,XUND]
+        blocks: instruction decode 2
+  ... plus 16 clusters with 1-2 members
+
+Narrow lesions:
+  lesions breaking exactly one instruction (all failing opcodes share one mnemonic): 468
+    KBP:68 JCN:48 DAA:32 ISZ:29 FIN:26 RAR:23 RAL:23 XCH:22 CMA:19 SRC:17 TCS:14 SUB:12 IAC:12 DAC:12 LD:11 ADD:11 CLB:11 CMC:11 CLC:10 SBM:9 ADM:9 DCL:9 undef:7 JIN:6 INC:3 BBL:2 FIM:2 RDM:2 RDR:2 LDM:1 WRM:1 WPM:1 RD0:1 RD3:1 TCC:1
+    T629c pulldown (308,728) JIN   1 opcode(s), 1/64 tests  kinds=PC  g=150(A3) VSS-153
+    T642c pass     (1159,738) FIN   7 opcode(s), 49/64 tests  kinds=ADDR,XUND  g=161(~{FIN}) 118(decode:NOP+...)-132(OPA in {0,1})
+    T651o load     (1100,743) FIN   7 opcode(s), 14/64 tests  kinds=ADDR,XUND  g=VDD VDD-571({FIN})
+    T652c pulldown (1125,750) FIN   7 opcode(s), 14/64 tests  kinds=ADDR,XUND  g=161(~{FIN}) VSS-571({FIN})
+    T653c pulldown (308,746) JIN   1 opcode(s), 1/64 tests  kinds=PC  g=157(A2) VSS-153
+    T658o pulldown (1202,748) FIN   1 opcode(s), 2/64 tests  kinds=ADDR,XUND  g=571({FIN}) VSS-122(decode:WRR+...)
+    T659o pulldown (1243,748) FIN   1 opcode(s), 2/64 tests  kinds=ADDR,XUND  g=571({FIN}) VSS-123(decode:WR0+...)
+    T660o pulldown (1269,748) FIN   1 opcode(s), 2/64 tests  kinds=ADDR,XUND  g=571({FIN}) VSS-124(decode:WR2+...)
+    T661o pulldown (1323,749) FIN   1 opcode(s), 2/64 tests  kinds=ADDR,XUND  g=571({FIN}) VSS-125(decode:SBM+...)
+    T662o pulldown (1364,749) FIN   1 opcode(s), 2/64 tests  kinds=ADDR,XUND  g=571({FIN}) VSS-126(decode:RDR+...)
+    T663o pulldown (1408,749) FIN   1 opcode(s), 2/64 tests  kinds=ADDR,XUND  g=571({FIN}) VSS-127(decode:RD0+...)
+    T664o pulldown (1449,749) FIN   1 opcode(s), 2/64 tests  kinds=ADDR,XUND  g=571({FIN}) VSS-128(decode:RD2+...)
+    T890o pass     (639,1012) FIN   8 opcode(s), 40/64 tests  kinds=PC  g=635 614-988
+    T906o pulldown (627,1025) FIN   8 opcode(s), 40/64 tests  kinds=PC  g=213(JIN+FIN) VSS-988
+    T939c pass     (1091,1066) FIN   8 opcode(s), 31/64 tests  kinds=REG  g=189(X1) 161(~{FIN})-1006(~{FIN})
+    T939o pass     (1091,1066) FIN   7 opcode(s), 28/64 tests  kinds=ADDR,XUND  g=189(X1) 161(~{FIN})-1006(~{FIN})
+    T955c pass     (1080,1097) JIN   7 opcode(s), 28/64 tests  kinds=REG,PC,XUND  g=212(~OPA.0) 1006(~{FIN})-1016(~JIN+FIN)
+    T955o pass     (1080,1097) FIN   7 opcode(s), 28/64 tests  kinds=ADDR,XUND  g=212(~OPA.0) 1006(~{FIN})-1016(~JIN+FIN)
+    T963c pulldown (1206,1092) ISZ   16 opcode(s), 126/144 tests  kinds=REG  g=196 VSS-1011
+    T984o pulldown (1092,1109) FIN   7 opcode(s), 28/64 tests  kinds=ADDR,XUND  g=223(JIN+FIN) VSS-1016(~JIN+FIN)
+    T997c pulldown (674,1114) FIN   8 opcode(s), 40/64 tests  kinds=PC  g=196 VSS-635
+    T1015o load     (670,1155) FIN   8 opcode(s), 40/64 tests  kinds=PC  g=VDD VDD-635
+    T1019c pulldown (762,1146) FIN   8 opcode(s), 40/64 tests  kinds=PC  g=196 VSS-1034
+    T1039c pass     (376,1182) FIN   8 opcode(s), 56/64 tests  kinds=PC  g=196 164(~JIN+FIN)-1036(~JIN+FIN)
+    T1058c pass     (747,1194) FIN   8 opcode(s), 40/64 tests  kinds=PC  g=215(JUN+JMS) 643(~JIN+FIN)-1024
+    T1066o pulldown (871,1228) ISZ   16 opcode(s), 144/144 tests  kinds=XUND  g=205 VSS-227(INC/ISZ)
+    T1071o pulldown (668,1246) INC   16 opcode(s), 96/96 tests  kinds=ACC,CY,REG,XUND,DRV,CM  g=234(~OPR.3) VSS-225(IO (E0-EF))
+    T1072o pulldown (691,1246) ISZ   14 opcode(s), 117/144 tests  kinds=ACC,CY,REG,PC,CMRAM,XUND,CM  g=234(~OPR.3) VSS-226(OPR in {F})
+    T1073c pulldown (895,1248) XCH   16 opcode(s), 80/96 tests  kinds=ACC,REG,XUND  g=234(~OPR.3) VSS-228(XCH)
+    T1076c pass     (1151,1249) XCH   15 opcode(s), 30/96 tests  kinds=REG  g=234(~OPR.3) 219(INC+ISZ+XCH)-236(INC/ISZ)
+    T1077c pulldown (1207,1248) LD    15 opcode(s), 30/96 tests  kinds=ACC  g=234(~OPR.3) VSS-230(LD)
+    T1078c pulldown (1234,1248) SUB   16 opcode(s), 128/128 tests  kinds=ACC,CY  g=234(~OPR.3) VSS-231(SUB)
+    T1078o pulldown (1234,1248) JCN   16 opcode(s), 224/224 tests  kinds=ACC,CY  g=234(~OPR.3) VSS-231(SUB)
+    T1079c pulldown (1256,1248) ADD   16 opcode(s), 90/128 tests  kinds=ACC,CY  g=234(~OPR.3) VSS-232(ADD)
+    T1085c pulldown (618,1262) JCN   15 opcode(s), 112/224 tests  kinds=PC  g=235(OPR.3) VSS-240(JCN)
+    T1087c pulldown (593,1262) ISZ   16 opcode(s), 110/144 tests  kinds=PC  g=235(OPR.3) VSS-239(ISZ)
+    T1088c pulldown (642,1262) SRC   8 opcode(s), 48/48 tests  kinds=CM  g=235(OPR.3) VSS-241(FIM+SRC)
+    T1088o pulldown (642,1262) LD    8 opcode(s), 48/96 tests  kinds=CM  g=235(OPR.3) VSS-241(FIM+SRC)
+    T1089o pulldown (724,1262) XCH   16 opcode(s), 96/96 tests  kinds=PC  g=235(OPR.3) VSS-213(JIN+FIN)
+    T1093c pulldown (970,1262) FIN   7 opcode(s), 28/64 tests  kinds=ADDR,XUND  g=235(OPR.3) VSS-223(JIN+FIN)
+    T1093o pulldown (970,1262) XCH   7 opcode(s), 14/96 tests  kinds=ACC,REG,XUND  g=235(OPR.3) VSS-223(JIN+FIN)
+    T1103c pulldown (822,1274) ISZ   16 opcode(s), 128/144 tests  kinds=ACC,REG,PC,STACK,CMRAM,XUND  g=243(~OPR.2) VSS-245(ISZ)
+    T1103o pulldown (822,1274) JIN   8 opcode(s), 64/64 tests  kinds=ACC,CMRAM  g=243(~OPR.2) VSS-245(ISZ)
+    T1104c pulldown (592,1279) ISZ   16 opcode(s), 110/144 tests  kinds=PC  g=243(~OPR.2) VSS-239(ISZ)
+    T1105o pulldown (668,1279) LD    16 opcode(s), 96/96 tests  kinds=ACC,CY,XUND,DRV,CM  g=243(~OPR.2) VSS-225(IO (E0-EF))
+    T1106o pulldown (691,1279) XCH   13 opcode(s), 66/96 tests  kinds=ACC,CY,CMRAM,XUND  g=243(~OPR.2) VSS-226(OPR in {F})
+    T1111o pulldown (921,1280) ADD   16 opcode(s), 128/128 tests  kinds=PC,STACK  g=243(~OPR.2) VSS-229(BBL)
+    T1112o pulldown (945,1280) JCN   16 opcode(s), 224/224 tests  kinds=PC,STACK  g=243(~OPR.2) VSS-222(JMS)
+    T1122c pass     (824,1290) JCN   16 opcode(s), 192/224 tests  kinds=ACC,REG,PC,STACK,CMRAM,XUND,CM  g=246(OPR.2) 217(JCN+ISZ)-245(ISZ)
+    T1130o pulldown (568,1294) INC   8 opcode(s), 48/96 tests  kinds=ACC,CMRAM  g=246(OPR.2) VSS-238(FIN+FIM)
+    T1131c pulldown (618,1294) JCN   15 opcode(s), 112/224 tests  kinds=PC  g=246(OPR.2) VSS-240(JCN)
+    T1132c pulldown (642,1294) SRC   8 opcode(s), 48/48 tests  kinds=CM  g=246(OPR.2) VSS-241(FIM+SRC)
+    T1132o pulldown (642,1294) INC   8 opcode(s), 48/96 tests  kinds=CM  g=246(OPR.2) VSS-241(FIM+SRC)
+    T1134o pulldown (724,1295) ISZ   16 opcode(s), 96/144 tests  kinds=PC,ADDR  g=246(OPR.2) VSS-213(JIN+FIN)
+    T1135c pulldown (896,1296) XCH   16 opcode(s), 80/96 tests  kinds=ACC,REG,XUND  g=246(OPR.2) VSS-228(XCH)
+    T1136c pulldown (971,1296) FIN   7 opcode(s), 28/64 tests  kinds=ADDR,XUND  g=246(OPR.2) VSS-223(JIN+FIN)
+    T1136o pulldown (971,1296) ISZ   7 opcode(s), 35/144 tests  kinds=REG,PC,XUND  g=246(OPR.2) VSS-223(JIN+FIN)
+    T1138c pass     (1153,1296) XCH   15 opcode(s), 30/96 tests  kinds=REG  g=246(OPR.2) 219(INC+ISZ+XCH)-236(INC/ISZ)
+    T1140c pulldown (1208,1296) LD    15 opcode(s), 30/96 tests  kinds=ACC  g=246(OPR.2) VSS-230(LD)
+    T1141c pulldown (1233,1296) SUB   16 opcode(s), 128/128 tests  kinds=ACC,CY  g=246(OPR.2) VSS-231(SUB)
+    T1142c pulldown (1258,1296) ADD   16 opcode(s), 90/128 tests  kinds=ACC,CY  g=246(OPR.2) VSS-232(ADD)
+    T1142o pulldown (1258,1296) BBL   16 opcode(s), 128/160 tests  kinds=ACC,CY  g=246(OPR.2) VSS-232(ADD)
+    T1146c pulldown (593,1312) ISZ   16 opcode(s), 110/144 tests  kinds=PC  g=247(~OPR.1) VSS-239(ISZ)
+    T1147c pulldown (642,1312) SRC   8 opcode(s), 48/48 tests  kinds=CM  g=247(~OPR.1) VSS-241(FIM+SRC)
+    T1147o pulldown (642,1312) undef 8 opcode(s), 48/102 tests  kinds=CM  g=247(~OPR.1) VSS-241(FIM+SRC)
+    T1148o pulldown (668,1312) BBL   16 opcode(s), 160/160 tests  kinds=ACC,CY,XUND,DRV,CM  g=247(~OPR.1) VSS-225(IO (E0-EF))
+    T1150o pulldown (724,1310) JCN   16 opcode(s), 184/224 tests  kinds=PC,ADDR  g=247(~OPR.1) VSS-213(JIN+FIN)
+    T1151c pulldown (895,1313) XCH   16 opcode(s), 80/96 tests  kinds=ACC,REG,XUND  g=247(~OPR.1) VSS-228(XCH)
+    T1151o pulldown (895,1313) SUB   16 opcode(s), 104/128 tests  kinds=XUND  g=247(~OPR.1) VSS-228(XCH)
+    T1155c pass     (1152,1314) XCH   15 opcode(s), 30/96 tests  kinds=REG  g=247(~OPR.1) 219(INC+ISZ+XCH)-236(INC/ISZ)
+    T1155o pass     (1152,1314) SUB   16 opcode(s), 102/128 tests  kinds=REG  g=247(~OPR.1) 219(INC+ISZ+XCH)-236(INC/ISZ)
+    T1157c pulldown (1207,1314) LD    15 opcode(s), 30/96 tests  kinds=ACC  g=247(~OPR.1) VSS-230(LD)
+    T1163c pulldown (970,1314) FIN   7 opcode(s), 28/64 tests  kinds=ADDR,XUND  g=247(~OPR.1) VSS-223(JIN+FIN)
+    T1163o pulldown (970,1314) JCN   7 opcode(s), 70/224 tests  kinds=REG  g=247(~OPR.1) VSS-223(JIN+FIN)
+    T1164c pulldown (824,1318) ISZ   16 opcode(s), 128/144 tests  kinds=ACC,REG,PC,STACK,CMRAM,XUND  g=247(~OPR.1) VSS-245(ISZ)
+    T1166c pulldown (618,1328) JCN   15 opcode(s), 112/224 tests  kinds=PC  g=250(OPR.1) VSS-240(JCN)
+    T1169o pulldown (945,1328) ISZ   16 opcode(s), 144/144 tests  kinds=PC,STACK  g=250(OPR.1) VSS-222(JMS)
+    T1170c pulldown (1233,1329) SUB   16 opcode(s), 128/128 tests  kinds=ACC,CY  g=250(OPR.1) VSS-231(SUB)
+    T1170o pulldown (1233,1329) XCH   16 opcode(s), 96/96 tests  kinds=ACC,CY  g=250(OPR.1) VSS-231(SUB)
+    T1171c pulldown (1258,1329) ADD   16 opcode(s), 90/128 tests  kinds=ACC,CY  g=250(OPR.1) VSS-232(ADD)
+    T1171o pulldown (1258,1329) LD    16 opcode(s), 64/96 tests  kinds=ACC,CY  g=250(OPR.1) VSS-232(ADD)
+    T1174c pass     (825,1333) JCN   16 opcode(s), 192/224 tests  kinds=ACC,REG,PC,STACK,CMRAM,XUND,CM  g=250(OPR.1) 217(JCN+ISZ)-245(ISZ)
+    T1174o pass     (825,1333) JIN   8 opcode(s), 64/64 tests  kinds=ACC,CMRAM  g=250(OPR.1) 217(JCN+ISZ)-245(ISZ)
+    T1182c pulldown (593,1345) ISZ   16 opcode(s), 110/144 tests  kinds=PC  g=252(~OPR.0) VSS-239(ISZ)
+    T1183c pulldown (618,1345) JCN   15 opcode(s), 112/224 tests  kinds=PC  g=252(~OPR.0) VSS-240(JCN)
+    T1186c pulldown (895,1346) XCH   16 opcode(s), 80/96 tests  kinds=ACC,REG,XUND  g=252(~OPR.0) VSS-228(XCH)
+    T1186o pulldown (895,1346) LD    16 opcode(s), 80/96 tests  kinds=XUND  g=252(~OPR.0) VSS-228(XCH)
+    T1188c pass     (1152,1347) XCH   15 opcode(s), 30/96 tests  kinds=REG  g=252(~OPR.0) 219(INC+ISZ+XCH)-236(INC/ISZ)
+    T1188o pass     (1152,1347) LD    16 opcode(s), 78/96 tests  kinds=REG  g=252(~OPR.0) 219(INC+ISZ+XCH)-236(INC/ISZ)
+    T1189c pulldown (1233,1346) SUB   16 opcode(s), 128/128 tests  kinds=ACC,CY  g=252(~OPR.0) VSS-231(SUB)
+    T1189o pulldown (1233,1346) ADD   16 opcode(s), 127/128 tests  kinds=ACC,CY,UNST  g=252(~OPR.0) VSS-231(SUB)
+    T1195c pulldown (971,1347) FIN   7 opcode(s), 28/64 tests  kinds=ADDR,XUND  g=252(~OPR.0) VSS-223(JIN+FIN)
+    T1195o pulldown (971,1347) FIM   7 opcode(s), 14/48 tests  kinds=XUND  g=252(~OPR.0) VSS-223(JIN+FIN)
+    T1199c pulldown (644,1361) SRC   8 opcode(s), 48/48 tests  kinds=CM  g=253(OPR.0) VSS-241(FIM+SRC)
+    T1199o pulldown (644,1361) JIN   8 opcode(s), 64/64 tests  kinds=CM  g=253(OPR.0) VSS-241(FIM+SRC)
+    T1201o pulldown (920,1362) LDM   16 opcode(s), 96/96 tests  kinds=PC,STACK  g=253(OPR.0) VSS-229(BBL)
+    T1202c pulldown (1208,1362) LD    15 opcode(s), 30/96 tests  kinds=ACC  g=253(OPR.0) VSS-230(LD)
+    T1203c pulldown (1258,1362) ADD   16 opcode(s), 90/128 tests  kinds=ACC,CY  g=253(OPR.0) VSS-232(ADD)
+    T1203o pulldown (1258,1362) SUB   16 opcode(s), 64/128 tests  kinds=ACC,CY,UNST  g=253(OPR.0) VSS-232(ADD)
+    T1213o load     (600,1398) ISZ   16 opcode(s), 110/144 tests  kinds=PC  g=VDD VDD-239(ISZ)
+    T1214o load     (612,1398) JCN   15 opcode(s), 112/224 tests  kinds=PC  g=VDD VDD-240(JCN)
+    T1219o load     (902,1398) XCH   16 opcode(s), 80/96 tests  kinds=ACC,REG,XUND  g=VDD VDD-228(XCH)
+    T1222o load     (964,1398) FIN   7 opcode(s), 28/64 tests  kinds=ADDR,XUND  g=VDD VDD-223(JIN+FIN)
+    T1223o load     (651,1398) SRC   8 opcode(s), 48/48 tests  kinds=CM  g=VDD VDD-241(FIM+SRC)
+    T1226o load     (1264,1400) ADD   16 opcode(s), 90/128 tests  kinds=ACC,CY  g=VDD VDD-232(ADD)
+    T1229o load     (1209,1404) LD    15 opcode(s), 30/96 tests  kinds=ACC  g=VDD VDD-230(LD)
+    T1232o load     (1222,1406) SUB   16 opcode(s), 128/128 tests  kinds=ACC,CY  g=VDD VDD-231(SUB)
+    T1239o load     (815,1461) KBP   1 opcode(s), 20/22 tests  kinds=ACC,XUND  g=VDD VDD-264(KBP)
+    T1242o load     (1166,1464) CLC   1 opcode(s), 5/10 tests  kinds=CY  g=VDD VDD-277(CLC)
+    T1243o load     (1203,1464) CLB   1 opcode(s), 9/10 tests  kinds=ACC,CY  g=VDD VDD-278(CLB)
+    T1246o load     (968,1466) RAR   1 opcode(s), 8/10 tests  kinds=ACC,CY  g=VDD VDD-269(RAR)
+    T1247o load     (1005,1466) RAL   1 opcode(s), 8/10 tests  kinds=ACC,CY  g=VDD VDD-270(RAL)
+    T1248o load     (1018,1465) CMA   1 opcode(s), 10/10 tests  kinds=ACC  g=VDD VDD-271(CMA)
+    T1249o load     (1154,1466) IAC   1 opcode(s), 10/10 tests  kinds=ACC,CY  g=VDD VDD-276(IAC)
+    T1250o load     (1216,1467) SBM   1 opcode(s), 14/14 tests  kinds=ACC,CY  g=VDD VDD-279(SBM)
+    T1251o load     (1104,1466) CMC   1 opcode(s), 10/10 tests  kinds=CY  g=VDD VDD-274(CMC)
+    T1252o load     (1116,1466) DAC   1 opcode(s), 10/10 tests  kinds=ACC,CY  g=VDD VDD-275(DAC)
+    T1254o load     (838,1466) TCS   1 opcode(s), 10/10 tests  kinds=ACC,CY,XUND  g=VDD VDD-265(TCS)
+    T1255o load     (864,1466) DAA   1 opcode(s), 38/38 tests  kinds=ACC,CY,XUND  g=VDD VDD-266(DAA)
+    T1259o load     (1233,1474) ADM   1 opcode(s), 12/14 tests  kinds=ACC,CY  g=VDD VDD-280(ADM)
+    T1263c pulldown (632,1479) FIM   8 opcode(s), 48/48 tests  kinds=CM  g=261(OPA.0) VSS-1046
+    T1263o pulldown (632,1479) SRC   8 opcode(s), 48/48 tests  kinds=CM  g=261(OPA.0) VSS-1046
+    T1265o pass     (618,1476) SRC   8 opcode(s), 48/48 tests  kinds=CM  g=241(FIM+SRC) 281(~{SRC})-1046
+    T1276c pulldown (1222,1500) SBM   1 opcode(s), 14/14 tests  kinds=ACC,CY  g=267(~IO (E0-EF)) VSS-279(SBM)
+    T1277c pulldown (1246,1501) ADM   1 opcode(s), 12/14 tests  kinds=ACC,CY  g=267(~IO (E0-EF)) VSS-280(ADM)
+    T1281c pulldown (578,1505) ISZ   10 opcode(s), 16/144 tests  kinds=PC  g=240(JCN) VSS-668(~JCN)
+    T1281o pulldown (578,1505) JCN   15 opcode(s), 112/224 tests  kinds=PC  g=240(JCN) VSS-668(~JCN)
+    T1289c pulldown (808,1514) KBP   1 opcode(s), 20/22 tests  kinds=ACC,XUND  g=283(decode:OPR in {0,1,2,3,4,5+...) VSS-264(KBP)
+    T1290c pulldown (836,1515) TCS   1 opcode(s), 10/10 tests  kinds=ACC,CY,XUND  g=283(decode:OPR in {0,1,2,3,4,5+...) VSS-265(TCS)
+    T1291c pulldown (868,1515) DAA   1 opcode(s), 38/38 tests  kinds=ACC,CY,XUND  g=283(decode:OPR in {0,1,2,3,4,5+...) VSS-266(DAA)
+    T1294c pulldown (974,1515) RAR   1 opcode(s), 8/10 tests  kinds=ACC,CY  g=283(decode:OPR in {0,1,2,3,4,5+...) VSS-269(RAR)
+    T1295c pulldown (999,1515) RAL   1 opcode(s), 8/10 tests  kinds=ACC,CY  g=283(decode:OPR in {0,1,2,3,4,5+...) VSS-270(RAL)
+    T1296c pulldown (1024,1515) CMA   1 opcode(s), 10/10 tests  kinds=ACC  g=283(decode:OPR in {0,1,2,3,4,5+...) VSS-271(CMA)
+    T1299c pulldown (1098,1516) CMC   1 opcode(s), 10/10 tests  kinds=CY  g=283(decode:OPR in {0,1,2,3,4,5+...) VSS-274(CMC)
+    T1300c pulldown (1123,1516) DAC   1 opcode(s), 10/10 tests  kinds=ACC,CY  g=283(decode:OPR in {0,1,2,3,4,5+...) VSS-275(DAC)
+    T1301c pulldown (1147,1516) IAC   1 opcode(s), 10/10 tests  kinds=ACC,CY  g=283(decode:OPR in {0,1,2,3,4,5+...) VSS-276(IAC)
+    T1305c pulldown (1172,1516) CLC   1 opcode(s), 5/10 tests  kinds=CY  g=283(decode:OPR in {0,1,2,3,4,5+...) VSS-277(CLC)
+    T1306c pulldown (1197,1516) CLB   1 opcode(s), 9/10 tests  kinds=ACC,CY  g=283(decode:OPR in {0,1,2,3,4,5+...) VSS-278(CLB)
+    T1309c pulldown (555,1518) JCN   15 opcode(s), 112/224 tests  kinds=PC  g=239(ISZ) VSS-285(~ISZ)
+    T1309o pulldown (555,1518) ISZ   16 opcode(s), 110/144 tests  kinds=PC  g=239(ISZ) VSS-285(~ISZ)
+    T1311c pulldown (596,1522) JCN   15 opcode(s), 112/224 tests  kinds=PC  g=668(~JCN) VSS-1049
+    T1311o pulldown (596,1522) ISZ   10 opcode(s), 16/144 tests  kinds=PC  g=668(~JCN) VSS-1049
+    T1312c pass     (660,1528) JCN   8 opcode(s), 53/224 tests  kinds=PC  g=669 1049-1052
+    T1312o pass     (660,1528) JCN   7 opcode(s), 59/224 tests  kinds=PC  g=669 1049-1052
+    T1313c pass     (711,1528) JCN   8 opcode(s), 53/224 tests  kinds=PC  g=670(~OPA.3) 1049-1052
+    T1313o pass     (711,1528) JCN   8 opcode(s), 53/224 tests  kinds=PC  g=670(~OPA.3) 1049-1052
+    T1314o pulldown (758,1532) RAL   1 opcode(s), 4/10 tests  kinds=CMRAM  g=670(~OPA.3) VSS-262(DCL)
+    T1316c pulldown (807,1532) KBP   1 opcode(s), 20/22 tests  kinds=ACC,XUND  g=670(~OPA.3) VSS-264(KBP)
+    T1317c pulldown (836,1532) TCS   1 opcode(s), 10/10 tests  kinds=ACC,CY,XUND  g=670(~OPA.3) VSS-265(TCS)
+    T1317o pulldown (836,1532) CLC   1 opcode(s), 9/10 tests  kinds=ACC  g=670(~OPA.3) VSS-265(TCS)
+    T1318c pulldown (867,1533) DAA   1 opcode(s), 38/38 tests  kinds=ACC,CY,XUND  g=670(~OPA.3) VSS-266(DAA)
+    T1318o pulldown (867,1533) CMC   1 opcode(s), 5/10 tests  kinds=ACC,CY  g=670(~OPA.3) VSS-266(DAA)
+    T1321c pulldown (1123,1533) DAC   1 opcode(s), 10/10 tests  kinds=ACC,CY  g=670(~OPA.3) VSS-275(DAC)
+    T1321o pulldown (1123,1533) CLB   1 opcode(s), 9/10 tests  kinds=ACC  g=670(~OPA.3) VSS-275(DAC)
+    T1322c pulldown (1222,1533) SBM   1 opcode(s), 14/14 tests  kinds=ACC,CY  g=670(~OPA.3) VSS-279(SBM)
+    T1322o pulldown (1222,1533) WRM   1 opcode(s), 3/6 tests  kinds=CY  g=670(~OPA.3) VSS-279(SBM)
+    T1323c pulldown (1246,1534) ADM   1 opcode(s), 12/14 tests  kinds=ACC,CY  g=670(~OPA.3) VSS-280(ADM)
+    T1323o pulldown (1246,1534) WPM   1 opcode(s), 2/6 tests  kinds=CY  g=670(~OPA.3) VSS-280(ADM)
+    T1327c pass     (602,1536) ISZ   16 opcode(s), 110/144 tests  kinds=PC  g=285(~ISZ) 284-1049
+    T1327o pass     (602,1536) JCN   15 opcode(s), 112/224 tests  kinds=PC  g=285(~ISZ) 284-1049
+    T1328c pulldown (662,1541) JCN   7 opcode(s), 59/224 tests  kinds=PC  g=674 VSS-1052
+    T1328o pulldown (662,1541) JCN   8 opcode(s), 53/224 tests  kinds=PC  g=674 VSS-1052
+    T1329c pulldown (712,1542) JCN   7 opcode(s), 59/224 tests  kinds=PC  g=260(OPA.3) VSS-1052
+    T1329o pulldown (712,1542) JCN   7 opcode(s), 59/224 tests  kinds=PC  g=260(OPA.3) VSS-1052
+    T1331o load     (558,1564) JCN   15 opcode(s), 112/224 tests  kinds=PC  g=VDD VDD-285(~ISZ)
+    T1334c pass     (606,1554) ISZ   16 opcode(s), 110/144 tests  kinds=PC  g=345({SUB+SBM+CMC}) 284-1049
+    T1334o pass     (606,1554) ISZ   16 opcode(s), 34/144 tests  kinds=PC  g=345({SUB+SBM+CMC}) 284-1049
+    T1336c pulldown (974,1548) RAR   1 opcode(s), 8/10 tests  kinds=ACC,CY  g=260(OPA.3) VSS-269(RAR)
+    T1336o pulldown (974,1548) undef 1 opcode(s), 6/102 tests  kinds=ACC,CY  g=260(OPA.3) VSS-269(RAR)
+    T1337c pulldown (999,1548) RAL   1 opcode(s), 8/10 tests  kinds=ACC,CY  g=260(OPA.3) VSS-270(RAL)
+    T1337o pulldown (999,1548) DCL   1 opcode(s), 21/22 tests  kinds=ACC,CY  g=260(OPA.3) VSS-270(RAL)
+    T1338c pulldown (1024,1548) CMA   1 opcode(s), 10/10 tests  kinds=ACC  g=260(OPA.3) VSS-271(CMA)
+    T1338o pulldown (1024,1548) KBP   1 opcode(s), 20/22 tests  kinds=ACC  g=260(OPA.3) VSS-271(CMA)
+    T1339o pulldown (1048,1548) undef 1 opcode(s), 6/102 tests  kinds=ACC  g=260(OPA.3) VSS-272(TCC)
+    T1340c pulldown (1098,1548) CMC   1 opcode(s), 10/10 tests  kinds=CY  g=260(OPA.3) VSS-274(CMC)
+    T1340o pulldown (1098,1548) DAA   1 opcode(s), 38/38 tests  kinds=ACC,CY  g=260(OPA.3) VSS-274(CMC)
+    T1341c pulldown (1148,1548) IAC   1 opcode(s), 10/10 tests  kinds=ACC,CY  g=260(OPA.3) VSS-276(IAC)
+    T1342c pulldown (1172,1548) CLC   1 opcode(s), 5/10 tests  kinds=CY  g=260(OPA.3) VSS-277(CLC)
+    T1343c pulldown (1197,1548) CLB   1 opcode(s), 9/10 tests  kinds=ACC,CY  g=260(OPA.3) VSS-278(CLB)
+    T1344o load     (572,1566) ISZ   10 opcode(s), 16/144 tests  kinds=PC  g=VDD VDD-668(~JCN)
+    T1351c pulldown (668,1560) JCN   7 opcode(s), 59/224 tests  kinds=PC  g=674 VSS-669
+    T1351o pulldown (668,1560) JCN   8 opcode(s), 53/224 tests  kinds=PC  g=674 VSS-669
+    T1354o pulldown (758,1564) TCS   1 opcode(s), 4/10 tests  kinds=CMRAM  g=286(~OPA.2) VSS-262(DCL)
+    T1356c pulldown (727,1564) JCN   8 opcode(s), 22/224 tests  kinds=PC  g=282(OPA.2) VSS-1054
+    T1356o pulldown (727,1564) JCN   8 opcode(s), 22/224 tests  kinds=PC  g=282(OPA.2) VSS-1054
+    T1357c pulldown (807,1565) KBP   1 opcode(s), 20/22 tests  kinds=ACC,XUND  g=286(~OPA.2) VSS-264(KBP)
+    T1357o pulldown (807,1565) DAC   1 opcode(s), 2/10 tests  kinds=ACC,CY,XUND  g=286(~OPA.2) VSS-264(KBP)
+    T1358c pulldown (974,1565) RAR   1 opcode(s), 8/10 tests  kinds=ACC,CY  g=286(~OPA.2) VSS-269(RAR)
+    T1358o pulldown (974,1565) IAC   1 opcode(s), 1/10 tests  kinds=ACC  g=286(~OPA.2) VSS-269(RAR)
+    T1359c pulldown (999,1565) RAL   1 opcode(s), 8/10 tests  kinds=ACC,CY  g=286(~OPA.2) VSS-270(RAL)
+    T1359o pulldown (999,1565) CLC   1 opcode(s), 8/10 tests  kinds=ACC  g=286(~OPA.2) VSS-270(RAL)
+    T1360c pulldown (1024,1565) CMA   1 opcode(s), 10/10 tests  kinds=ACC  g=286(~OPA.2) VSS-271(CMA)
+    T1360o pulldown (1024,1565) CLB   1 opcode(s), 9/10 tests  kinds=ACC  g=286(~OPA.2) VSS-271(CMA)
+    T1361o pulldown (1048,1566) CMC   1 opcode(s), 9/10 tests  kinds=ACC,UNST  g=286(~OPA.2) VSS-272(TCC)
+    T1362c pass     (697,1568) JCN   8 opcode(s), 42/224 tests  kinds=PC  g=291 674-1054
+    T1362o pass     (697,1568) JCN   8 opcode(s), 22/224 tests  kinds=PC  g=291 674-1054
+    T1367o load     (627,1573) JCN   7 opcode(s), 59/224 tests  kinds=PC  g=VDD VDD-669
+    T1370c pulldown (370,1573) JCN   8 opcode(s), 30/224 tests  kinds=PC  g=TEST VSS-293(~TEST)
+    T1370o pulldown (370,1573) JCN   8 opcode(s), 38/224 tests  kinds=PC  g=TEST VSS-293(~TEST)
+    T1373c pulldown (836,1580) TCS   1 opcode(s), 10/10 tests  kinds=ACC,CY,XUND  g=282(OPA.2) VSS-265(TCS)
+    T1373o pulldown (836,1580) DCL   1 opcode(s), 22/22 tests  kinds=ACC,CY,XUND  g=282(OPA.2) VSS-265(TCS)
+    T1374c pulldown (868,1580) DAA   1 opcode(s), 38/38 tests  kinds=ACC,CY,XUND  g=282(OPA.2) VSS-266(DAA)
+    T1374o pulldown (868,1580) undef 1 opcode(s), 6/102 tests  kinds=ACC,XUND  g=282(OPA.2) VSS-266(DAA)
+    T1375o load     (662,1580) JCN   16 opcode(s), 106/224 tests  kinds=PC  g=VDD VDD-674
+    T1376o pulldown (1074,1581) undef 1 opcode(s), 3/102 tests  kinds=CY  g=282(OPA.2) VSS-273(STC)
+    T1377c pulldown (1098,1581) CMC   1 opcode(s), 10/10 tests  kinds=CY  g=282(OPA.2) VSS-274(CMC)
+    T1378c pulldown (1123,1581) DAC   1 opcode(s), 10/10 tests  kinds=ACC,CY  g=282(OPA.2) VSS-275(DAC)
+    T1378o pulldown (1123,1581) KBP   1 opcode(s), 20/22 tests  kinds=ACC,CY  g=282(OPA.2) VSS-275(DAC)
+    T1379c pulldown (1148,1581) IAC   1 opcode(s), 10/10 tests  kinds=ACC,CY  g=282(OPA.2) VSS-276(IAC)
+    T1379o pulldown (1148,1581) RAR   1 opcode(s), 10/10 tests  kinds=ACC,CY  g=282(OPA.2) VSS-276(IAC)
+    T1380c pulldown (1173,1581) CLC   1 opcode(s), 5/10 tests  kinds=CY  g=282(OPA.2) VSS-277(CLC)
+    T1380o pulldown (1173,1581) RAL   1 opcode(s), 5/10 tests  kinds=CY  g=282(OPA.2) VSS-277(CLC)
+    T1381c pulldown (1197,1582) CLB   1 opcode(s), 9/10 tests  kinds=ACC,CY  g=282(OPA.2) VSS-278(CLB)
+    T1381o pulldown (1197,1582) CMA   1 opcode(s), 5/10 tests  kinds=CY  g=282(OPA.2) VSS-278(CLB)
+    T1382c pulldown (1222,1581) SBM   1 opcode(s), 14/14 tests  kinds=ACC,CY  g=282(OPA.2) VSS-279(SBM)
+    T1382o pulldown (1222,1581) RD0   1 opcode(s), 9/9 tests  kinds=ACC,CY  g=282(OPA.2) VSS-279(SBM)
+    T1383c pulldown (1247,1582) ADM   1 opcode(s), 12/14 tests  kinds=ACC,CY  g=282(OPA.2) VSS-280(ADM)
+    T1383o pulldown (1247,1582) RD3   1 opcode(s), 6/9 tests  kinds=ACC,CY  g=282(OPA.2) VSS-280(ADM)
+    T1386o load     (384,1593) JCN   8 opcode(s), 30/224 tests  kinds=PC  g=VDD VDD-293(~TEST)
+    T1393c pulldown (867,1598) DAA   1 opcode(s), 38/38 tests  kinds=ACC,CY,XUND  g=292(~OPA.1) VSS-266(DAA)
+    T1393o pulldown (867,1598) TCS   1 opcode(s), 10/10 tests  kinds=ACC,CY,XUND  g=292(~OPA.1) VSS-266(DAA)
+    T1395c pulldown (975,1598) RAR   1 opcode(s), 8/10 tests  kinds=ACC,CY  g=292(~OPA.1) VSS-269(RAR)
+    T1395o pulldown (975,1598) CMA   1 opcode(s), 10/10 tests  kinds=ACC,CY,UNST  g=292(~OPA.1) VSS-269(RAR)
+    T1396o pulldown (1048,1598) RAL   1 opcode(s), 9/10 tests  kinds=ACC,CY  g=292(~OPA.1) VSS-272(TCC)
+    T1397o pulldown (1073,1598) DAC   1 opcode(s), 10/10 tests  kinds=ACC,CY  g=292(~OPA.1) VSS-273(STC)
+    T1398c pulldown (1097,1598) CMC   1 opcode(s), 10/10 tests  kinds=CY  g=292(~OPA.1) VSS-274(CMC)
+    T1399c pulldown (1147,1598) IAC   1 opcode(s), 10/10 tests  kinds=ACC,CY  g=292(~OPA.1) VSS-276(IAC)
+    T1399o pulldown (1147,1598) CLB   1 opcode(s), 10/10 tests  kinds=ACC,CY  g=292(~OPA.1) VSS-276(IAC)
+    T1400c pulldown (1246,1599) ADM   1 opcode(s), 12/14 tests  kinds=ACC,CY  g=292(~OPA.1) VSS-280(ADM)
+    T1400o pulldown (1246,1599) RDM   1 opcode(s), 6/9 tests  kinds=ACC,CY  g=292(~OPA.1) VSS-280(ADM)
+    T1402c pass     (696,1604) JCN   8 opcode(s), 36/224 tests  kinds=PC  g=294(CY) 674-1056
+    T1402o pass     (696,1604) JCN   8 opcode(s), 34/224 tests  kinds=PC  g=294(CY) 674-1056
+    T1403c pulldown (727,1600) JCN   8 opcode(s), 34/224 tests  kinds=PC  g=289(OPA.1) VSS-1056
+    T1403o pulldown (727,1600) JCN   8 opcode(s), 34/224 tests  kinds=PC  g=289(OPA.1) VSS-1056
+    T1407o pulldown (758,1614) undef 1 opcode(s), 2/102 tests  kinds=CMRAM  g=289(OPA.1) VSS-262(DCL)
+    T1408c pulldown (808,1614) KBP   1 opcode(s), 20/22 tests  kinds=ACC,XUND  g=289(OPA.1) VSS-264(KBP)
+    T1408o pulldown (808,1614) undef 1 opcode(s), 5/102 tests  kinds=ACC,XUND  g=289(OPA.1) VSS-264(KBP)
+    T1409c pulldown (836,1614) TCS   1 opcode(s), 10/10 tests  kinds=ACC,CY,XUND  g=289(OPA.1) VSS-265(TCS)
+    T1409o pulldown (836,1614) DAA   1 opcode(s), 25/38 tests  kinds=ACC,CY,XUND  g=289(OPA.1) VSS-265(TCS)
+    T1410c pulldown (999,1614) RAL   1 opcode(s), 8/10 tests  kinds=ACC,CY  g=289(OPA.1) VSS-270(RAL)
+    T1411c pulldown (1024,1614) CMA   1 opcode(s), 10/10 tests  kinds=ACC  g=289(OPA.1) VSS-271(CMA)
+    T1411o pulldown (1024,1614) RAR   1 opcode(s), 10/10 tests  kinds=ACC,CY,UNST  g=289(OPA.1) VSS-271(CMA)
+    T1413c pulldown (1122,1614) DAC   1 opcode(s), 10/10 tests  kinds=ACC,CY  g=289(OPA.1) VSS-275(DAC)
+    T1414c pulldown (1172,1614) CLC   1 opcode(s), 5/10 tests  kinds=CY  g=289(OPA.1) VSS-277(CLC)
+    T1415c pulldown (1197,1614) CLB   1 opcode(s), 9/10 tests  kinds=ACC,CY  g=289(OPA.1) VSS-278(CLB)
+    T1416c pulldown (1222,1614) SBM   1 opcode(s), 14/14 tests  kinds=ACC,CY  g=289(OPA.1) VSS-279(SBM)
+    T1416o pulldown (1222,1614) RDR   1 opcode(s), 9/9 tests  kinds=ACC,CY  g=289(OPA.1) VSS-279(SBM)
+    T1422c pass     (718,1628) JCN   8 opcode(s), 38/224 tests  kinds=PC  g=293(~TEST) 674-1058
+    T1422o pass     (718,1628) JCN   8 opcode(s), 30/224 tests  kinds=PC  g=293(~TEST) 674-1058
+    T1424o load     (520,1634) SRC   8 opcode(s), 48/48 tests  kinds=CM  g=VDD VDD-691({SRC})
+    T1427o pulldown (758,1630) KBP   1 opcode(s), 16/22 tests  kinds=CMRAM  g=212(~OPA.0) VSS-262(DCL)
+    T1428c pulldown (837,1631) TCS   1 opcode(s), 10/10 tests  kinds=ACC,CY,XUND  g=212(~OPA.0) VSS-265(TCS)
+    T1428o pulldown (837,1631) DAC   1 opcode(s), 10/10 tests  kinds=ACC,CY,XUND  g=212(~OPA.0) VSS-265(TCS)
+    T1429c pulldown (867,1631) DAA   1 opcode(s), 38/38 tests  kinds=ACC,CY,XUND  g=212(~OPA.0) VSS-266(DAA)
+    T1430c pulldown (998,1631) RAL   1 opcode(s), 8/10 tests  kinds=ACC,CY  g=212(~OPA.0) VSS-270(RAL)
+    T1430o pulldown (998,1631) CMA   1 opcode(s), 10/10 tests  kinds=ACC,CY,UNST  g=212(~OPA.0) VSS-270(RAL)
+    T1431o pulldown (1048,1631) RAR   1 opcode(s), 9/10 tests  kinds=ACC,CY  g=212(~OPA.0) VSS-272(TCC)
+    T1432c pulldown (1098,1631) CMC   1 opcode(s), 10/10 tests  kinds=CY  g=212(~OPA.0) VSS-274(CMC)
+    T1432o pulldown (1098,1631) IAC   1 opcode(s), 10/10 tests  kinds=ACC,CY  g=212(~OPA.0) VSS-274(CMC)
+    T1433c pulldown (1173,1631) CLC   1 opcode(s), 5/10 tests  kinds=CY  g=212(~OPA.0) VSS-277(CLC)
+    T1435c pulldown (734,1639) JCN   8 opcode(s), 30/224 tests  kinds=PC  g=261(OPA.0) VSS-1058
+    T1435o pulldown (734,1639) JCN   8 opcode(s), 30/224 tests  kinds=PC  g=261(OPA.0) VSS-1058
+    T1436c pulldown (1246,1632) ADM   1 opcode(s), 12/14 tests  kinds=ACC,CY  g=212(~OPA.0) VSS-280(ADM)
+    T1436o pulldown (1246,1632) RDR   1 opcode(s), 6/9 tests  kinds=ACC,CY  g=212(~OPA.0) VSS-280(ADM)
+    T1443c pulldown (808,1646) KBP   1 opcode(s), 20/22 tests  kinds=ACC,XUND  g=261(OPA.0) VSS-264(KBP)
+    T1443o pulldown (808,1646) DCL   1 opcode(s), 20/22 tests  kinds=ACC,XUND  g=261(OPA.0) VSS-264(KBP)
+    T1444c pulldown (974,1646) RAR   1 opcode(s), 8/10 tests  kinds=ACC,CY  g=261(OPA.0) VSS-269(RAR)
+    T1445c pulldown (1122,1647) DAC   1 opcode(s), 10/10 tests  kinds=ACC,CY  g=261(OPA.0) VSS-275(DAC)
+    T1445o pulldown (1122,1647) TCS   1 opcode(s), 9/10 tests  kinds=ACC,CY  g=261(OPA.0) VSS-275(DAC)
+    T1446c pulldown (1024,1647) CMA   1 opcode(s), 10/10 tests  kinds=ACC  g=261(OPA.0) VSS-271(CMA)
+    T1446o pulldown (1024,1647) RAL   1 opcode(s), 10/10 tests  kinds=ACC,CY,UNST  g=261(OPA.0) VSS-271(CMA)
+    T1447o pulldown (1073,1647) DAA   1 opcode(s), 38/38 tests  kinds=ACC,CY  g=261(OPA.0) VSS-273(STC)
+    T1448c pulldown (1148,1647) IAC   1 opcode(s), 10/10 tests  kinds=ACC,CY  g=261(OPA.0) VSS-276(IAC)
+    T1448o pulldown (1148,1647) CMC   1 opcode(s), 5/10 tests  kinds=ACC,CY  g=261(OPA.0) VSS-276(IAC)
+    T1449c pulldown (1197,1647) CLB   1 opcode(s), 9/10 tests  kinds=ACC,CY  g=261(OPA.0) VSS-278(CLB)
+    T1449o pulldown (1197,1647) CLC   1 opcode(s), 9/10 tests  kinds=ACC  g=261(OPA.0) VSS-278(CLB)
+    T1450c pulldown (1222,1647) SBM   1 opcode(s), 14/14 tests  kinds=ACC,CY  g=261(OPA.0) VSS-279(SBM)
+    T1450o pulldown (1222,1647) RDM   1 opcode(s), 9/9 tests  kinds=ACC,CY  g=261(OPA.0) VSS-279(SBM)
+    T1453c pulldown (478,1656) SRC   8 opcode(s), 48/48 tests  kinds=CM  g=281(~{SRC}) VSS-691({SRC})
+    T1461o pass     (492,1679) SRC   8 opcode(s), 48/48 tests  kinds=CM  g=691({SRC}) 299(~{SRC})-1060({SRC})
+    T1468o pulldown (820,1675) KBP   1 opcode(s), 16/22 tests  kinds=ACC  g=264(KBP) VSS-301(~decode:ADD+...)
+    T1469o pulldown (842,1675) TCS   1 opcode(s), 8/10 tests  kinds=ACC  g=265(TCS) VSS-301(~decode:ADD+...)
+    T1470o pulldown (870,1675) DAA   1 opcode(s), 25/38 tests  kinds=ACC  g=266(DAA) VSS-301(~decode:ADD+...)
+    T1471o pulldown (916,1675) XCH   15 opcode(s), 30/96 tests  kinds=ACC  g=228(XCH) VSS-301(~decode:ADD+...)
+    T1473o pulldown (1020,1675) CMA   1 opcode(s), 10/10 tests  kinds=ACC  g=271(CMA) VSS-301(~decode:ADD+...)
+    T1476o pulldown (1119,1676) DAC   1 opcode(s), 10/10 tests  kinds=ACC  g=275(DAC) VSS-301(~decode:ADD+...)
+    T1477o pulldown (1150,1676) IAC   1 opcode(s), 10/10 tests  kinds=ACC  g=276(IAC) VSS-301(~decode:ADD+...)
+    T1478o pulldown (1199,1676) CLB   1 opcode(s), 9/10 tests  kinds=ACC  g=278(CLB) VSS-301(~decode:ADD+...)
+    T1479o pulldown (1269,1676) LD    15 opcode(s), 30/96 tests  kinds=ACC  g=230(LD) VSS-301(~decode:ADD+...)
+    T1480o pulldown (1283,1676) SUB   16 opcode(s), 90/128 tests  kinds=ACC  g=231(SUB) VSS-301(~decode:ADD+...)
+    T1481o pulldown (1302,1676) ADD   16 opcode(s), 90/128 tests  kinds=ACC  g=232(ADD) VSS-301(~decode:ADD+...)
+    T1494o pulldown (462,1688) SRC   8 opcode(s), 48/48 tests  kinds=CM  g=313(X2) VSS-1060({SRC})
+    T1498o pulldown (1283,1692) SUB   16 opcode(s), 108/128 tests  kinds=CY  g=231(SUB) VSS-303(~decode:ADD+...)
+    T1500o pulldown (842,1692) TCS   1 opcode(s), 5/10 tests  kinds=CY  g=265(TCS) VSS-303(~decode:ADD+...)
+    T1501o pulldown (1050,1692) TCC   1 opcode(s), 5/10 tests  kinds=CY  g=272(TCC) VSS-303(~decode:ADD+...)
+    T1503o pulldown (1100,1692) CMC   1 opcode(s), 10/10 tests  kinds=CY  g=274(CMC) VSS-303(~decode:ADD+...)
+    T1504o pulldown (1119,1692) DAC   1 opcode(s), 4/10 tests  kinds=CY  g=275(DAC) VSS-303(~decode:ADD+...)
+    T1505o pulldown (1150,1692) IAC   1 opcode(s), 4/10 tests  kinds=CY  g=276(IAC) VSS-303(~decode:ADD+...)
+    T1506o pulldown (1168,1692) CLC   1 opcode(s), 5/10 tests  kinds=CY  g=277(CLC) VSS-303(~decode:ADD+...)
+    T1507o pulldown (1184,1692) CLB   1 opcode(s), 5/10 tests  kinds=CY  g=278(CLB) VSS-303(~decode:ADD+...)
+    T1508o pulldown (1218,1692) SBM   1 opcode(s), 12/14 tests  kinds=CY  g=279(SBM) VSS-303(~decode:ADD+...)
+    T1509o pulldown (1249,1692) ADM   1 opcode(s), 7/14 tests  kinds=CY  g=280(ADM) VSS-303(~decode:ADD+...)
+    T1510o pulldown (1302,1692) ADD   13 opcode(s), 30/128 tests  kinds=CY  g=232(ADD) VSS-303(~decode:ADD+...)
+    T1515o pulldown (870,1705) DAA   1 opcode(s), 35/38 tests  kinds=ACC  g=266(DAA) VSS-305(~decode:ADD+...)
+    T1516o pulldown (970,1708) RAR   1 opcode(s), 9/10 tests  kinds=ACC,CY  g=269(RAR) VSS-305(~decode:ADD+...)
+    T1517o pulldown (1002,1708) RAL   1 opcode(s), 9/10 tests  kinds=ACC,CY  g=270(RAL) VSS-305(~decode:ADD+...)
+    T1518o pulldown (1149,1708) IAC   1 opcode(s), 9/10 tests  kinds=ACC,CY  g=276(IAC) VSS-305(~decode:ADD+...)
+    T1519o pulldown (1283,1708) SUB   16 opcode(s), 104/128 tests  kinds=ACC,CY  g=231(SUB) VSS-305(~decode:ADD+...)
+    T1520o pulldown (1302,1708) ADD   16 opcode(s), 104/128 tests  kinds=ACC,CY  g=232(ADD) VSS-305(~decode:ADD+...)
+    T1522o pulldown (1119,1709) DAC   1 opcode(s), 9/10 tests  kinds=ACC,CY  g=275(DAC) VSS-305(~decode:ADD+...)
+    T1523o pulldown (1218,1708) SBM   1 opcode(s), 11/14 tests  kinds=ACC,CY  g=279(SBM) VSS-305(~decode:ADD+...)
+    T1524o pulldown (1249,1709) ADM   1 opcode(s), 11/14 tests  kinds=ACC,CY  g=280(ADM) VSS-305(~decode:ADD+...)
+    T1528o pulldown (841,1711) TCS   1 opcode(s), 5/10 tests  kinds=ACC  g=265(TCS) VSS-306(~{ADD+ADM+TCC+TCS})
+    T1543o pulldown (1249,1725) ADM   1 opcode(s), 7/14 tests  kinds=ACC,CY  g=280(ADM) VSS-306(~{ADD+ADM+TCC+TCS})
+    T1545o pulldown (1302,1725) ADD   16 opcode(s), 64/128 tests  kinds=ACC,CY  g=232(ADD) VSS-306(~{ADD+ADM+TCC+TCS})
+    T1554o pulldown (1150,1744) IAC   1 opcode(s), 10/10 tests  kinds=ACC,CY  g=276(IAC) VSS-308(~{INC+ISZ+IAC+STC})
+    T1562o pulldown (1231,1747) SBM   1 opcode(s), 14/14 tests  kinds=ACC,CY  g=279(SBM) VSS-311(~{SUB+SBM+CMC})
+    T1569o pulldown (1088,1758) CMC   1 opcode(s), 5/10 tests  kinds=CY  g=274(CMC) VSS-311(~{SUB+SBM+CMC})
+    T1572o pulldown (1284,1758) SUB   16 opcode(s), 127/128 tests  kinds=ACC,CY  g=231(SUB) VSS-311(~{SUB+SBM+CMC})
+    T1582c pass     (802,1787) XCH   16 opcode(s), 80/96 tests  kinds=REG,XUND  g=712(~XCH) 344-1063
+    T1588c pass     (774,1798) XCH   16 opcode(s), 80/96 tests  kinds=REG,XUND  g=258 344-1063
+    T1588o pass     (774,1798) XCH   16 opcode(s), 95/96 tests  kinds=REG,PC,CMRAM,X1,XUND,UNST  g=258 344-1063
+    T1595o pulldown (951,1790) RAL   1 opcode(s), 8/10 tests  kinds=ACC,CY  g=270(RAL) VSS-718(~RAL)
+    T1597o pulldown (827,1790) XCH   16 opcode(s), 80/96 tests  kinds=REG,XUND  g=228(XCH) VSS-712(~XCH)
+    T1603c pulldown (1024,1796) RAR   1 opcode(s), 8/10 tests  kinds=ACC,CY  g=258 VSS-332
+    T1603o pulldown (1024,1796) RAR   1 opcode(s), 10/10 tests  kinds=ACC,CY  g=258 VSS-332
+    T1605o pulldown (989,1800) RAR   1 opcode(s), 8/10 tests  kinds=ACC,CY  g=269(RAR) VSS-717(~RAR)
+    T1607o pulldown (1058,1802) CMA   1 opcode(s), 9/10 tests  kinds=ACC  g=271(CMA) VSS-719(~CMA)
+    T1608c pulldown (924,1803) RAL   1 opcode(s), 8/10 tests  kinds=ACC,CY  g=258 VSS-331
+    T1609c pulldown (1006,1806) RAR   1 opcode(s), 8/10 tests  kinds=ACC,CY  g=717(~RAR) VSS-332
+    T1622c pulldown (942,1814) RAL   1 opcode(s), 8/10 tests  kinds=ACC,CY  g=718(~RAL) VSS-331
+    T1624c pulldown (1074,1816) CMA   1 opcode(s), 9/10 tests  kinds=ACC  g=719(~CMA) VSS-328
+    T1625c pulldown (1098,1816) CMA   1 opcode(s), 9/10 tests  kinds=ACC  g=318(~IO (E0-EF)) VSS-328
+    T1633o load     (1023,1842) RAR   1 opcode(s), 8/10 tests  kinds=ACC,CY  g=VDD VDD-332
+    T1641o load     (948,1852) RAL   1 opcode(s), 8/10 tests  kinds=ACC,CY  g=VDD VDD-331
+    T1682c pass     (1028,1898) RAL   1 opcode(s), 2/10 tests  kinds=ACC,CY  g=332 294(CY)-334
+    T1682o pass     (1028,1898) RAR   1 opcode(s), 5/10 tests  kinds=ACC  g=332 294(CY)-334
+    T1696o pass     (882,1915) DAA   1 opcode(s), 6/38 tests  kinds=CY  g=295 335(CY)-1074
+    T1699o pullup   (859,1922) DAA   1 opcode(s), 6/38 tests  kinds=CY  g=337 VDD-1074
+    T1701o load     (470,1937) SRC   8 opcode(s), 48/48 tests  kinds=CM  g=VDD VDD-313(X2)
+    T1707c pass     (557,1932) SRC   8 opcode(s), 48/48 tests  kinds=CM  g=PHI2 189(X1)-742(X1)
+    T1707o pass     (557,1932) SRC   8 opcode(s), 48/48 tests  kinds=CM  g=PHI2 189(X1)-742(X1)
+    T1712c pass     (980,1938) RAR   1 opcode(s), 6/10 tests  kinds=ACC,CY  g=331 334-335(CY)
+    T1712o pass     (980,1938) RAL   1 opcode(s), 2/10 tests  kinds=CY  g=331 334-335(CY)
+    T1716c pass     (514,1942) SRC   8 opcode(s), 48/48 tests  kinds=CM  g=327 740(A1+A2+A3+M1+M2+X1+X3)-1077(A1+A2+A3+M1+M2+X2+X3)
+    T1728c pulldown (500,1961) SRC   8 opcode(s), 48/48 tests  kinds=CM  g=740(A1+A2+A3+M1+M2+X1+X3) VSS-313(X2)
+    T1736o pulldown (557,1966) SRC   8 opcode(s), 48/48 tests  kinds=CM  g=742(X1) VSS-1077(A1+A2+A3+M1+M2+X2+X3)
+    T1740o pass     (1008,1974) RAR   1 opcode(s), 6/10 tests  kinds=CY  g=332 335(CY)-343(~{SUB+SBM+CMC})
+    T1762o pass     (1091,2000) CMA   1 opcode(s), 5/10 tests  kinds=ACC  g=328 350-352(~ACC.0)
+    T1765c pass     (899,2005) XCH   8 opcode(s), 16/96 tests  kinds=REG,XUND  g=330(X1) 352(~ACC.0)-750(~ACC.0)
+    T1772o pass     (979,2016) RAL   1 opcode(s), 6/10 tests  kinds=ACC  g=331 294(CY)-752(ACC.0)
+    T1774c pulldown (505,2023) DAA   1 opcode(s), 25/38 tests  kinds=ACC,CY,XUND  g=355 VSS-337
+    T1774o pulldown (505,2023) DAA   1 opcode(s), 13/38 tests  kinds=ACC,CY,XUND  g=355 VSS-337
+    T1775c pulldown (524,2023) DAA   1 opcode(s), 25/38 tests  kinds=ACC,CY,XUND  g=749(~DAA) VSS-337
+    T1779c pulldown (582,2030) DAA   1 opcode(s), 25/38 tests  kinds=ACC,XUND  g=355 VSS-1081
+    T1779o pulldown (582,2030) DAA   1 opcode(s), 13/38 tests  kinds=ACC,XUND  g=355 VSS-1081
+    T1780o pass     (594,2030) DAA   1 opcode(s), 13/38 tests  kinds=ACC,XUND  g=266(DAA) 758-1081
+    T1785c pulldown (745,2033) JCN   8 opcode(s), 22/224 tests  kinds=PC  g=751(ACC.0) VSS-291
+    T1791o pulldown (629,2034) KBP   1 opcode(s), 6/22 tests  kinds=ACC,XUND  g=264(KBP) VSS-358(~KBP)
+    T1793c pulldown (474,2034) DAA   1 opcode(s), 13/38 tests  kinds=ACC,CY,XUND  g=294(CY) VSS-355
+    T1793o pulldown (474,2034) DAA   1 opcode(s), 10/38 tests  kinds=ACC,XUND  g=294(CY) VSS-355
+    T1794o pulldown (563,2035) DAA   1 opcode(s), 25/38 tests  kinds=ACC,CY,XUND  g=266(DAA) VSS-749(~DAA)
+    T1807c pass     (479,2048) DAA   1 opcode(s), 8/38 tests  kinds=ACC,CY,XUND  g=363(ACC.3) 355-1082
+    T1807o pass     (479,2048) DAA   1 opcode(s), 6/38 tests  kinds=ACC,CY,XUND  g=363(ACC.3) 355-1082
+    T1811o pass     (1011,2050) RAR   1 opcode(s), 4/10 tests  kinds=ACC  g=332 357(~{SUB+SBM+CMC})-752(ACC.0)
+    T1813o load     (520,2066) DAA   1 opcode(s), 13/38 tests  kinds=ACC,CY,XUND  g=VDD VDD-355
+    T1814c pulldown (757,2061) ISZ   16 opcode(s), 34/144 tests  kinds=PC  g=343(~{SUB+SBM+CMC}) VSS-345({SUB+SBM+CMC})
+    T1814o pulldown (757,2061) ISZ   16 opcode(s), 34/144 tests  kinds=PC  g=343(~{SUB+SBM+CMC}) VSS-345({SUB+SBM+CMC})
+    T1822o load     (734,2072) JCN   8 opcode(s), 22/224 tests  kinds=PC  g=VDD VDD-291
+    T1826o load     (532,2072) DAA   1 opcode(s), 25/38 tests  kinds=ACC,CY,XUND  g=VDD VDD-337
+    T1832c pulldown (479,2081) DAA   1 opcode(s), 2/38 tests  kinds=ACC,CY,XUND  g=382(ACC.2) VSS-1082
+    T1832o pulldown (479,2081) DAA   1 opcode(s), 2/38 tests  kinds=ACC,CY,XUND  g=382(ACC.2) VSS-1082
+    T1833c pulldown (496,2081) DAA   1 opcode(s), 2/38 tests  kinds=ACC,CY,XUND  g=383(ACC.1) VSS-1082
+    T1833o pulldown (496,2081) DAA   1 opcode(s), 2/38 tests  kinds=ACC,CY,XUND  g=383(ACC.1) VSS-1082
+    T1835o pullup   (1159,2084) CMA   1 opcode(s), 9/10 tests  kinds=ACC  g=763 VDD-328
+    T1844o load     (1182,2088) CMA   1 opcode(s), 9/10 tests  kinds=ACC  g=VDD VDD-763
+    T1851o load     (734,2102) ISZ   16 opcode(s), 34/144 tests  kinds=PC  g=VDD VDD-345({SUB+SBM+CMC})
+    T1853o load     (411,2107) DCL   1 opcode(s), 9/22 tests  kinds=CMRAM  g=VDD VDD-381(~DCL.0)
+    T1856o load     (533,2108) KBP   1 opcode(s), 1/22 tests  kinds=ACC,XUND  g=VDD VDD-376
+    T1857o load     (552,2105) KBP   1 opcode(s), 1/22 tests  kinds=ACC,XUND  g=VDD VDD-378
+    T1858o load     (571,2107) KBP   1 opcode(s), 1/22 tests  kinds=ACC,XUND  g=VDD VDD-379
+    T1860o load     (514,2108) KBP   1 opcode(s), 1/22 tests  kinds=ACC,XUND  g=VDD VDD-377
+    T1866c pulldown (757,2112) ISZ   16 opcode(s), 34/144 tests  kinds=PC  g=357(~{SUB+SBM+CMC}) VSS-345({SUB+SBM+CMC})
+    T1866o pulldown (757,2112) ISZ   2 opcode(s), 2/144 tests  kinds=PC  g=357(~{SUB+SBM+CMC}) VSS-345({SUB+SBM+CMC})
+    T1872o pass     (1088,2113) CMA   1 opcode(s), 5/10 tests  kinds=ACC  g=328 372-1088(ACC.1)
+    T1883o pass     (979,2124) RAL   1 opcode(s), 4/10 tests  kinds=ACC  g=331 343(~{SUB+SBM+CMC})-775(ACC.1)
+    T1892c pulldown (612,2136) KBP   1 opcode(s), 2/22 tests  kinds=ACC,XUND  g=358(~KBP) VSS-371
+    T1894c pulldown (746,2140) JCN   8 opcode(s), 22/224 tests  kinds=PC  g=383(ACC.1) VSS-291
+    T1910c pulldown (519,2152) KBP   1 opcode(s), 1/22 tests  kinds=ACC,XUND  g=358(~KBP) VSS-377
+    T1911c pulldown (538,2152) KBP   1 opcode(s), 1/22 tests  kinds=ACC,XUND  g=358(~KBP) VSS-376
+    T1912c pulldown (563,2152) KBP   1 opcode(s), 1/22 tests  kinds=ACC,XUND  g=358(~KBP) VSS-378
+    T1913c pulldown (585,2152) KBP   1 opcode(s), 1/22 tests  kinds=ACC,XUND  g=358(~KBP) VSS-379
+    T1915o pulldown (390,2159) DCL   1 opcode(s), 13/22 tests  kinds=CMRAM  g=302 VSS-386
+    T1917o pulldown (371,2167) DCL   1 opcode(s), 2/22 tests  kinds=CMRAM  g=374(DCL.0) VSS-392
+    T1920o pass     (1011,2159) RAR   1 opcode(s), 6/10 tests  kinds=ACC  g=332 385(~{SUB+SBM+CMC})-775(ACC.1)
+    T1924c pass     (415,2162) DCL   1 opcode(s), 9/22 tests  kinds=CMRAM  g=386 381(~DCL.0)-776(~DCL.0)
+    T1932c pass     (898,2170) XCH   8 opcode(s), 16/96 tests  kinds=REG,XUND  g=330(X1) 380(~ACC.1)-781(~ACC.1)
+    T1934c pulldown (586,2172) KBP   1 opcode(s), 1/22 tests  kinds=ACC,XUND  g=779(~ACC.0) VSS-379
+    T1941o pass     (1071,2189) CMA   1 opcode(s), 5/10 tests  kinds=ACC  g=328 388-391(~ACC.2)
+    T1945c pulldown (519,2191) KBP   1 opcode(s), 1/22 tests  kinds=ACC,XUND  g=751(ACC.0) VSS-377
+    T1945o pulldown (519,2191) KBP   1 opcode(s), 1/22 tests  kinds=ACC,XUND  g=751(ACC.0) VSS-377
+    T1946c pulldown (538,2191) KBP   1 opcode(s), 1/22 tests  kinds=ACC,XUND  g=751(ACC.0) VSS-376
+    T1946o pulldown (538,2191) KBP   1 opcode(s), 3/22 tests  kinds=ACC,XUND  g=751(ACC.0) VSS-376
+    T1947c pulldown (564,2191) KBP   1 opcode(s), 1/22 tests  kinds=ACC,XUND  g=751(ACC.0) VSS-378
+    T1947o pulldown (564,2191) KBP   1 opcode(s), 1/22 tests  kinds=ACC,XUND  g=751(ACC.0) VSS-378
+    T1948c pulldown (612,2192) KBP   1 opcode(s), 2/22 tests  kinds=ACC,XUND  g=751(ACC.0) VSS-371
+    T1948o pulldown (612,2192) KBP   1 opcode(s), 1/22 tests  kinds=ACC,XUND  g=751(ACC.0) VSS-371
+    T1949c pass     (899,2190) XCH   8 opcode(s), 16/96 tests  kinds=REG,XUND  g=330(X1) 391(~ACC.2)-783(~ACC.2)
+    T1961o pass     (979,2201) RAL   1 opcode(s), 6/10 tests  kinds=ACC  g=331 357(~{SUB+SBM+CMC})-790(ACC.2)
+    T1968c pulldown (564,2211) KBP   1 opcode(s), 1/22 tests  kinds=ACC,XUND  g=787(~ACC.1) VSS-378
+    T1973c pulldown (720,2220) JCN   8 opcode(s), 22/224 tests  kinds=PC  g=382(ACC.2) VSS-291
+    T1988c pulldown (521,2231) KBP   1 opcode(s), 1/22 tests  kinds=ACC,XUND  g=383(ACC.1) VSS-377
+    T1988o pulldown (521,2231) KBP   1 opcode(s), 3/22 tests  kinds=ACC,XUND  g=383(ACC.1) VSS-377
+    T1989c pulldown (544,2231) KBP   1 opcode(s), 1/22 tests  kinds=ACC,XUND  g=383(ACC.1) VSS-376
+    T1989o pulldown (544,2231) KBP   1 opcode(s), 1/22 tests  kinds=ACC,XUND  g=383(ACC.1) VSS-376
+    T1990c pulldown (584,2231) KBP   1 opcode(s), 1/22 tests  kinds=ACC,XUND  g=383(ACC.1) VSS-379
+    T1990o pulldown (584,2231) KBP   1 opcode(s), 1/22 tests  kinds=ACC,XUND  g=383(ACC.1) VSS-379
+    T1991c pulldown (612,2231) KBP   1 opcode(s), 2/22 tests  kinds=ACC,XUND  g=383(ACC.1) VSS-371
+    T1991o pulldown (612,2231) KBP   1 opcode(s), 1/22 tests  kinds=ACC,XUND  g=383(ACC.1) VSS-371
+    T2001o pass     (1011,2236) RAR   1 opcode(s), 6/10 tests  kinds=ACC  g=332 396(~{SUB+SBM+CMC})-790(ACC.2)
+    T2005c pulldown (731,2246) ISZ   16 opcode(s), 34/144 tests  kinds=PC  g=385(~{SUB+SBM+CMC}) VSS-345({SUB+SBM+CMC})
+    T2005o pulldown (731,2246) ISZ   2 opcode(s), 2/144 tests  kinds=PC  g=385(~{SUB+SBM+CMC}) VSS-345({SUB+SBM+CMC})
+    T2011o load     (347,2250) DCL   1 opcode(s), 8/22 tests  kinds=CMRAM  g=VDD VDD-399(~DCL.1)
+    T2012c pulldown (544,2250) KBP   1 opcode(s), 1/22 tests  kinds=ACC,XUND  g=798(~ACC.2) VSS-376
+    T2022c pass     (424,2258) DCL   1 opcode(s), 8/22 tests  kinds=CMRAM  g=386 399(~DCL.1)-789(~DCL.1)
+    T2029c pulldown (522,2270) KBP   1 opcode(s), 1/22 tests  kinds=ACC,XUND  g=382(ACC.2) VSS-377
+    T2029o pulldown (522,2270) KBP   1 opcode(s), 1/22 tests  kinds=ACC,XUND  g=382(ACC.2) VSS-377
+    T2030c pulldown (564,2271) KBP   1 opcode(s), 1/22 tests  kinds=ACC,XUND  g=382(ACC.2) VSS-378
+    T2030o pulldown (564,2271) KBP   1 opcode(s), 1/22 tests  kinds=ACC,XUND  g=382(ACC.2) VSS-378
+    T2031c pulldown (584,2271) KBP   1 opcode(s), 1/22 tests  kinds=ACC,XUND  g=382(ACC.2) VSS-379
+    T2031o pulldown (584,2271) KBP   1 opcode(s), 3/22 tests  kinds=ACC,XUND  g=382(ACC.2) VSS-379
+    T2033c pulldown (612,2271) KBP   1 opcode(s), 2/22 tests  kinds=ACC,XUND  g=382(ACC.2) VSS-371
+    T2033o pulldown (612,2271) KBP   1 opcode(s), 1/22 tests  kinds=ACC,XUND  g=382(ACC.2) VSS-371
+    T2040c pulldown (730,2298) ISZ   16 opcode(s), 34/144 tests  kinds=PC  g=396(~{SUB+SBM+CMC}) VSS-345({SUB+SBM+CMC})
+    T2040o pulldown (730,2298) ISZ   2 opcode(s), 2/144 tests  kinds=PC  g=396(~{SUB+SBM+CMC}) VSS-345({SUB+SBM+CMC})
+    T2052c pulldown (517,2302) KBP   1 opcode(s), 1/22 tests  kinds=ACC,XUND  g=805(~ACC.3) VSS-377
+    T2054o pulldown (644,2300) KBP   1 opcode(s), 1/22 tests  kinds=ACC,XUND  g=363(ACC.3) VSS-805(~ACC.3)
+    T2057o pass     (1088,2307) CMA   1 opcode(s), 5/10 tests  kinds=ACC  g=328 402-1095(ACC.3)
+    T2063c pulldown (541,2310) KBP   1 opcode(s), 1/22 tests  kinds=ACC,XUND  g=363(ACC.3) VSS-376
+    T2063o pulldown (541,2310) KBP   1 opcode(s), 1/22 tests  kinds=ACC,XUND  g=363(ACC.3) VSS-376
+    T2067c pulldown (564,2310) KBP   1 opcode(s), 1/22 tests  kinds=ACC,XUND  g=363(ACC.3) VSS-378
+    T2067o pulldown (564,2310) KBP   1 opcode(s), 3/22 tests  kinds=ACC,XUND  g=363(ACC.3) VSS-378
+    T2068c pulldown (584,2310) KBP   1 opcode(s), 1/22 tests  kinds=ACC,XUND  g=363(ACC.3) VSS-379
+    T2068o pulldown (584,2310) KBP   1 opcode(s), 1/22 tests  kinds=ACC,XUND  g=363(ACC.3) VSS-379
+    T2069c pulldown (613,2310) KBP   1 opcode(s), 2/22 tests  kinds=ACC,XUND  g=363(ACC.3) VSS-371
+    T2069o pulldown (613,2310) KBP   1 opcode(s), 1/22 tests  kinds=ACC,XUND  g=363(ACC.3) VSS-371
+    T2070o pass     (978,2310) RAL   1 opcode(s), 6/10 tests  kinds=ACC  g=331 385(~{SUB+SBM+CMC})-810(ACC.3)
+    T2077c pulldown (718,2325) JCN   8 opcode(s), 22/224 tests  kinds=PC  g=363(ACC.3) VSS-291
+    T2093c pass     (1045,2338) RAR   1 opcode(s), 2/10 tests  kinds=ACC  g=331 334-396(~{SUB+SBM+CMC})
+    T2093o pass     (1045,2338) RAL   1 opcode(s), 5/10 tests  kinds=CY  g=331 334-396(~{SUB+SBM+CMC})
+    T2102c pass     (1011,2346) RAL   1 opcode(s), 6/10 tests  kinds=ACC,CY  g=332 334-810(ACC.3)
+    T2102o pass     (1011,2346) RAR   1 opcode(s), 2/10 tests  kinds=ACC  g=332 334-810(ACC.3)
+    T2106o pulldown (572,2362) KBP   1 opcode(s), 1/22 tests  kinds=ACC,XUND  g=376 VSS-412
+    T2107o pulldown (589,2362) KBP   1 opcode(s), 1/22 tests  kinds=ACC,XUND  g=378 VSS-412
+    T2108o pulldown (609,2363) KBP   1 opcode(s), 1/22 tests  kinds=ACC,XUND  g=379 VSS-412
+    T2109o pulldown (664,2363) DAA   1 opcode(s), 25/38 tests  kinds=ACC,XUND  g=337 VSS-412
+    T2110o pulldown (552,2362) KBP   1 opcode(s), 1/22 tests  kinds=ACC,XUND  g=377 VSS-412
+    T2114c pass     (898,2355) XCH   8 opcode(s), 16/96 tests  kinds=REG,XUND  g=330(X1) 406(~ACC.3)-809(~ACC.3)
+    T2134o pulldown (574,2412) KBP   1 opcode(s), 1/22 tests  kinds=ACC,XUND  g=376 VSS-413
+    T2135o pulldown (592,2412) KBP   1 opcode(s), 1/22 tests  kinds=ACC,XUND  g=378 VSS-413
+    T2136o pulldown (609,2411) KBP   1 opcode(s), 1/22 tests  kinds=ACC,XUND  g=379 VSS-413
+    T2138o pulldown (644,2412) TCS   1 opcode(s), 10/10 tests  kinds=ACC,XUND  g=265(TCS) VSS-413
+    T2164o pulldown (556,2461) KBP   1 opcode(s), 1/22 tests  kinds=ACC,XUND  g=377 VSS-414
+    T2165o pulldown (609,2461) KBP   1 opcode(s), 1/22 tests  kinds=ACC,XUND  g=379 VSS-414
+    T2167o pulldown (644,2461) TCS   1 opcode(s), 10/10 tests  kinds=ACC,XUND  g=265(TCS) VSS-414
+    T2190o pulldown (556,2510) KBP   1 opcode(s), 1/22 tests  kinds=ACC,XUND  g=377 VSS-416
+    T2191o pulldown (592,2510) KBP   1 opcode(s), 1/22 tests  kinds=ACC,XUND  g=378 VSS-416
+    T2193o pulldown (664,2510) DAA   1 opcode(s), 25/38 tests  kinds=ACC,XUND  g=337 VSS-416
+  lesions with exactly one failure kind: 393  PC:108 ACC:79 CM:74 CY:36 REG:34 XUND:24 DRV:20 CMRAM:8 SYNC:6 STACK:2 X1:2
+    carry only: T1242o load (1166,1464) instructions: CLC (5 tests)
+    carry only: T1251o load (1104,1466) instructions: CMC (10 tests)
+    carry only: T1299c pulldown (1098,1516) instructions: CMC (10 tests)
+    carry only: T1305c pulldown (1172,1516) instructions: CLC (5 tests)
+    carry only: T1322o pulldown (1222,1533) instructions: WRM (3 tests)
+    carry only: T1323o pulldown (1246,1534) instructions: WPM (2 tests)
+    carry only: T1340c pulldown (1098,1548) instructions: CMC (10 tests)
+    carry only: T1342c pulldown (1172,1548) instructions: CLC (5 tests)
+    carry only: T1376o pulldown (1074,1581) instructions: undef (3 tests)
+    carry only: T1377c pulldown (1098,1581) instructions: CMC (10 tests)
+    carry only: T1380c pulldown (1173,1581) instructions: CLC (5 tests)
+    carry only: T1380o pulldown (1173,1581) instructions: RAL (5 tests)
+    carry only: T1381o pulldown (1197,1582) instructions: CMA (5 tests)
+    carry only: T1398c pulldown (1097,1598) instructions: CMC (10 tests)
+    carry only: T1414c pulldown (1172,1614) instructions: CLC (5 tests)
+    carry only: T1432c pulldown (1098,1631) instructions: CMC (10 tests)
+    carry only: T1433c pulldown (1173,1631) instructions: CLC (5 tests)
+    carry only: T1498o pulldown (1283,1692) instructions: SUB (108 tests)
+    carry only: T1500o pulldown (842,1692) instructions: TCS (5 tests)
+    carry only: T1501o pulldown (1050,1692) instructions: TCC (5 tests)
+    carry only: T1503o pulldown (1100,1692) instructions: CMC (10 tests)
+    carry only: T1504o pulldown (1119,1692) instructions: DAC (4 tests)
+    carry only: T1505o pulldown (1150,1692) instructions: IAC (4 tests)
+    carry only: T1506o pulldown (1168,1692) instructions: CLC (5 tests)
+    carry only: T1507o pulldown (1184,1692) instructions: CLB (5 tests)
+    carry only: T1508o pulldown (1218,1692) instructions: SBM (12 tests)
+    carry only: T1509o pulldown (1249,1692) instructions: ADM (7 tests)
+    carry only: T1510o pulldown (1302,1692) instructions: ADD (30 tests)
+    carry only: T1569o pulldown (1088,1758) instructions: CMC (5 tests)
+    carry only: T1696o pass (882,1915) instructions: DAA (6 tests)
+    carry only: T1699o pullup (859,1922) instructions: DAA (6 tests)
+    carry only: T1712o pass (980,1938) instructions: RAL (2 tests)
+    carry only: T1740o pass (1008,1974) instructions: RAR (6 tests)
+    carry only: T1782o pulldown (1147,2026) instructions: ADD+SUB+SBM+ADM+IAC+CMA+RAL+RAR+DAC+DAA (186 tests)
+    carry only: T1983o pulldown (1146,2225) instructions: ADD+SUB+SBM+ADM+IAC+CMA+RAL+RAR+DAC+DAA (186 tests)
+    carry only: T2093o pass (1045,2338) instructions: RAL (5 tests)
+  lesions whose ONLY effect is on undocumented X2/X3 bus contents (+/- drive): 44
+    T850o pulldown (1084,969) FIM+FIN+ISZ  (159 tests)  g=205 VSS-84
+    T891o pulldown (1246,1022) FIM+FIN+ISZ  (159 tests)  g=205 VSS-87
+    T1066o pulldown (871,1228) ISZ  (144 tests)  g=205 VSS-227(INC/ISZ)
+    T1115o pulldown (1306,1281) NOP+undef+JCN  (300 tests)  g=243(~OPR.2) VSS-242(JUN+JMS)
+    T1151o pulldown (895,1313) SUB  (104 tests)  g=247(~OPR.1) VSS-228(XCH)
+    T1152o pulldown (871,1313) JUN+JMS  (210 tests)  g=247(~OPR.1) VSS-227(INC/ISZ)
+    T1153o pass     (1038,1314) JUN+JMS  (123 tests)  g=247(~OPR.1) 218(INC+ISZ+ADD+SUB+XCH+LD)-224(OPR in {8,9,A,B})
+    T1186o pulldown (895,1346) LD  (80 tests)  g=252(~OPR.0) VSS-228(XCH)
+    T1195o pulldown (971,1347) FIM  (14 tests)  g=252(~OPR.0) VSS-223(JIN+FIN)
+    T1475o pulldown (1825,1691) undef+JCN+FIM+SRC+FIN+JIN+JUN+JMS+INC+ISZ+ADD+SUB+LD+XCH+BBL+LDM+I/O-write+I/O-read+acc-group  (1814 tests)  g=297(IOR) VSS-300(OPA.3)
+    T1489o pulldown (1908,1692) NOP+undef+JCN+FIM+SRC+FIN+JIN+JUN+JMS+INC+ISZ+ADD+SUB+LD+XCH+BBL+LDM+I/O-write+I/O-read+acc-group  (2046 tests)  g=297(IOR) VSS-298(~OPA.3)
+    T1514o pullup   (1722,1712) NOP+undef+JCN+FIM+FIN+JUN+JMS+ISZ+ADD+SUB+LD+BBL+LDM+CLB+CLC+IAC+CMC+CMA+RAL+RAR+TCC+DAA+KBP  (890 tests)  g=696(~IOR) 11(OPA.0)-VDD
+    T1550o pullup   (1716,1747) NOP+undef+JCN+FIM+FIN+JUN+JMS+ISZ+ADD+SUB+LD+BBL+LDM+CLB+CLC+IAC+CMC+CMA+RAL+RAR+TCC+TCS+DAA+KBP+I/O-write  (876 tests)  g=696(~IOR) 13(OPA.2)-VDD
+    T1570c pullup   (1821,1817) NOP+undef+JCN+FIM+SRC+FIN+JIN+JUN+JMS+INC+ISZ+ADD+SUB+LD+XCH+BBL+LDM+I/O-write+I/O-read+acc-group  (2046 tests)  g=300(OPA.3) VDD-D3
+    T1586o pullup   (1714,1790) NOP+undef+JCN+FIM+FIN+JUN+JMS+ISZ+ADD+SUB+LD+BBL+LDM+CLB+CLC+IAC+CMC+CMA+RAL+RAR+TCC+TCS+DAA+KBP+I/O-write  (907 tests)  g=696(~IOR) 12(OPA.1)-VDD
+    T1601c pulldown (870,1794) I/O-write  (24 tests)  g=707(~IOW) VSS-722
+    T1602o pullup   (1681,1796) NOP+undef+JCN+FIM+FIN+JUN+JMS+ISZ+ADD+SUB+LD+BBL+LDM+CLB+CLC+IAC+CMC+CMA+RAL+RAR+TCC+DAA+KBP+I/O-write  (860 tests)  g=696(~IOR) 14(OPA.3)-VDD
+    T1610c pulldown (852,1806) I/O-write  (24 tests)  g=258 VSS-722
+    T1612o load     (1587,1810) NOP+undef+JCN+FIM+FIN+JUN+JMS+ISZ+ADD+SUB+LD+BBL+LDM+CLB+CLC+IAC+CMC+CMA+RAL+RAR+TCC+TCS+DAA+KBP+I/O-write  (1442 tests)  g=VDD VDD-696(~IOR)
+    T1623c pulldown (1641,1814) NOP+undef+JCN+FIM+FIN+JUN+JMS+ISZ+ADD+SUB+LD+BBL+LDM+CLB+CLC+IAC+CMC+CMA+RAL+RAR+TCC+TCS+DAA+KBP+I/O-write  (1442 tests)  g=315(IOR) VSS-696(~IOR)
+    T1629o load     (872,1841) I/O-write  (24 tests)  g=VDD VDD-722
+    T1640o load     (1532,1830) NOP+undef+JCN+FIM+FIN+JUN+JMS+ISZ+ADD+SUB+LD+BBL+LDM+CLB+CLC+IAC+CMC+CMA+RAL+RAR+TCC+TCS+DAA+KBP+I/O-write  (1442 tests)  g=VDD VDD-1069(~IOR)
+    T1644c pulldown (1588,1837) NOP+undef+JCN+FIM+FIN+JUN+JMS+ISZ+ADD+SUB+LD+BBL+LDM+CLB+CLC+IAC+CMC+CMA+RAL+RAR+TCC+TCS+DAA+KBP+I/O-write  (1442 tests)  g=214(IOR) VSS-1069(~IOR)
+    T1649o pass     (1596,1854) NOP+undef+JCN+FIM+FIN+JUN+JMS+ISZ+ADD+SUB+LD+BBL+LDM+CLB+CLC+IAC+CMC+CMA+RAL+RAR+TCC+TCS+DAA+KBP+I/O-write  (1442 tests)  g=PHI1 324(~IOR)-1069(~IOR)
+    T1662o pass     (1630,1867) NOP+undef+JCN+FIM+FIN+JUN+JMS+ISZ+ADD+SUB+LD+BBL+LDM+CLB+CLC+IAC+CMC+CMA+RAL+RAR+TCC+TCS+DAA+KBP+I/O-write  (1442 tests)  g=PHI2 315(IOR)-1071(IOR)
+    T1667c pass     (1554,1880) NOP+undef+JCN+FIM+SRC+FIN+JIN+JUN+JMS+INC+ISZ+ADD+SUB+LD+XCH+BBL+LDM+I/O-write+I/O-read+acc-group  (2046 tests)  g=PHI1 214(IOR)-732(IOR)
+    T1667o pass     (1554,1880) NOP+undef+JCN+FIM+SRC+FIN+JIN+JUN+JMS+INC+ISZ+ADD+SUB+LD+XCH+BBL+LDM+I/O-write+I/O-read+acc-group  (2046 tests)  g=PHI1 214(IOR)-732(IOR)
+    T1668o pulldown (1635,1880) NOP+undef+JCN+FIM+FIN+JUN+JMS+ISZ+ADD+SUB+LD+BBL+LDM+CLB+CLC+IAC+CMC+CMA+RAL+RAR+TCC+TCS+DAA+KBP+I/O-write  (1442 tests)  g=324(~IOR) VSS-1071(IOR)
+    T1678o pulldown (1584,1893) NOP+undef+JCN+FIM+SRC+FIN+JIN+JUN+JMS+INC+ISZ+ADD+SUB+LD+XCH+BBL+LDM+I/O-write+I/O-read+acc-group  (2046 tests)  g=732(IOR) VSS-737(~IOR)
+    T1702c pulldown (1493,1936) NOP+undef+JCN+FIM+SRC+FIN+JIN+JUN+JMS+INC+ISZ+ADD+SUB+LD+XCH+BBL+LDM+I/O-write+I/O-read+acc-group  (2046 tests)  g=290 VSS-1073(IOR)
+    T1711c pulldown (1587,1935) NOP+undef+JCN+FIM+SRC+FIN+JIN+JUN+JMS+INC+ISZ+ADD+SUB+LD+XCH+BBL+LDM+I/O-write+I/O-read+acc-group  (2046 tests)  g=737(~IOR) VSS-743(IOR)
+    T1722o load     (1555,1950) NOP+undef+JCN+FIM+SRC+FIN+JIN+JUN+JMS+INC+ISZ+ADD+SUB+LD+XCH+BBL+LDM+I/O-write+I/O-read+acc-group  (2046 tests)  g=VDD VDD-743(IOR)
+    T1726c pulldown (1632,1968) NOP+undef+JCN+FIM+SRC+FIN+JIN+JUN+JMS+INC+ISZ+ADD+SUB+LD+XCH+BBL+LDM+I/O-write+I/O-read+acc-group  (2046 tests)  g=737(~IOR) VSS-297(IOR)
+    T1733o pullup   (1604,1968) NOP+undef+JCN+FIM+SRC+FIN+JIN+JUN+JMS+INC+ISZ+ADD+SUB+LD+XCH+BBL+LDM+I/O-write+I/O-read+acc-group  (2046 tests)  g=743(IOR) VDD-297(IOR)
+    T1735o pass     (830,1971) I/O-write  (24 tests)  g=722 11(OPA.0)-294(CY)
+    T1874o pulldown (1800,2132) undef+JCN+FIM+SRC+FIN+JIN+JUN+JMS+INC+ISZ+ADD+SUB+LD+XCH+BBL+LDM+I/O-write+I/O-read+acc-group  (1686 tests)  g=297(IOR) VSS-373(OPA.2)
+    T1877o pulldown (1885,2133) NOP+undef+JCN+FIM+SRC+FIN+JIN+JUN+JMS+INC+ISZ+ADD+SUB+LD+XCH+BBL+LDM+I/O-write+I/O-read+acc-group  (2046 tests)  g=297(IOR) VSS-368(~OPA.2)
+    T1956c pullup   (1791,2258) NOP+undef+JCN+FIM+SRC+FIN+JIN+JUN+JMS+INC+ISZ+ADD+SUB+LD+XCH+BBL+LDM+I/O-write+I/O-read+acc-group  (2046 tests)  g=373(OPA.2) VDD-D2
+    T2205c pullup   (983,2539) NOP+undef+JCN+FIM+SRC+FIN+JIN+JUN+JMS+INC+ISZ+ADD+SUB+LD+XCH+BBL+LDM+I/O-write+I/O-read+acc-group  (2046 tests)  g=418(OPA.0) VDD-D0
+    T2206o pulldown (1107,2549) undef+JCN+FIM+SRC+FIN+JIN+JUN+JMS+INC+ISZ+ADD+SUB+LD+XCH+BBL+LDM+WMP+WPM+WR1+WR3+I/O-read+acc-group  (1684 tests)  g=297(IOR) VSS-418(OPA.0)
+    T2208c pullup   (1448,2540) NOP+undef+JCN+FIM+SRC+FIN+JIN+JUN+JMS+INC+ISZ+ADD+SUB+LD+XCH+BBL+LDM+I/O-write+I/O-read+acc-group  (2046 tests)  g=419(OPA.1) VDD-D1
+    T2209o pulldown (1575,2550) undef+JCN+FIM+SRC+FIN+JIN+JUN+JMS+INC+ISZ+ADD+SUB+LD+XCH+BBL+LDM+I/O-write+I/O-read+acc-group  (1694 tests)  g=297(IOR) VSS-419(OPA.1)
+    T2229o pulldown (1106,2631) NOP+undef+JCN+FIM+SRC+FIN+JIN+JUN+JMS+INC+ISZ+ADD+SUB+LD+XCH+BBL+LDM+I/O-write+I/O-read+acc-group  (2046 tests)  g=297(IOR) VSS-425(~OPA.0)
+    T2232o pulldown (1574,2631) NOP+undef+JCN+FIM+SRC+FIN+JIN+JUN+JMS+INC+ISZ+ADD+SUB+LD+XCH+BBL+LDM+I/O-write+I/O-read+acc-group  (2046 tests)  g=297(IOR) VSS-426(~OPA.1)
+  lesions with pin/bus differences but correct final state in every test: 164
+
+Coverage against the pilot's random tests:
+  caught only with 16 random tests per opcode (pilot recheck): 7 -> caught by the structured set: 7
+    1281c: structured set partial, 16 tests fail, ISZ
+    1910o: structured set partial, 5 tests fail, DAC+TCS+STC+DAA+DCL
+    1911c: structured set partial, 1 tests fail, KBP
+    1948o: structured set partial, 1 tests fail, KBP
+    1989c: structured set partial, 1 tests fail, KBP
+    1989o: structured set partial, 1 tests fail, KBP
+    2134o: structured set partial, 1 tests fail, KBP
+  pilot sample (K=2 random, 400 lesions): K=2 found 314 with an effect; the structured set misses 0 of them [] and finds 8 more
+
+Comparison with Jonas & Kording 2017 (6502, stuck-closed only, 3 games, 3510 transistors):
+  6502: no effect 1565 (44.6%), all three games 1560 (44.4%), two 200 (5.7%), one 186 (5.3%)
+  4004 stuck-closed: no effect 640 (28.5%), global 1226 (54.7%), broad+partial+reset 376 (16.8%)
+  4004 stuck-closed excluding loads: no effect 213 (11.7%), global 1226 (67.5%)
+

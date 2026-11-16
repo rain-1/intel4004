@@ -1,0 +1,177 @@
+000               ; ---------------------------------------------------------------------------
+000               ;  HAPPY BIRTHDAY, 4004
+000               ;
+000               ;  A birthday card computed by the Intel 4004 itself. The chip is told two
+000               ;  years, works out its own age with the BCD arithmetic it was built for
+000               ;  (it was designed to run a desk calculator), and puts one candle on the
+000               ;  cake for every year.
+000               ;
+000               ;  Output device: a teletype on two 4001 ROM output ports. Write the low
+000               ;  nibble of a character to ROM 0, then the high nibble to ROM 1 to print.
+000               ; ---------------------------------------------------------------------------
+000               
+000               ; registers:  P0 (R0,R1)   text pointer        P1 (R2,R3)  character to print
+000               ;             R4..R7       1971, low digit first (later: loop counter in R4)
+000               ;             R8..R11      this year, low digit first; becomes the age
+000               ;             P6, P7       addresses of the two teletype ports
+000               
+000                       ORG $000
+000  00                   NOP
+001  2C 00                FIM P6, $00             ; ROM 0 port: low nibble
+003  2E 10                FIM P7, $10             ; ROM 1 port: high nibble + print
+005  28 62                FIM P4, $62             ; this year: 2 0 2 6
+007  2A 02                FIM P5, $02
+009  24 17                FIM P2, $17             ; born:      1 9 7 1
+00B  26 91                FIM P3, $91
+00D               
+00D  20 0F                FIM P0, lo(banner)
+00F  51 00                JMS puts1
+011               
+011  AB                   LD R11                  ; print "2026 - 1971 = "
+012  50 84                JMS putdigit
+014  AA                   LD R10
+015  50 84                JMS putdigit
+017  A9                   LD R9
+018  50 84                JMS putdigit
+01A  A8                   LD R8
+01B  50 84                JMS putdigit
+01D  20 49                FIM P0, lo(minus)
+01F  51 00                JMS puts1
+021  A7                   LD R7
+022  50 84                JMS putdigit
+024  A6                   LD R6
+025  50 84                JMS putdigit
+027  A5                   LD R5
+028  50 84                JMS putdigit
+02A  A4                   LD R4
+02B  50 84                JMS putdigit
+02D  20 4D                FIM P0, lo(equals)
+02F  51 00                JMS puts1
+031               
+031               ; age = year - 1971, one decimal digit at a time. TCS loads 9 or 10 depending
+031               ; on whether the previous digit borrowed, DAA pulls the sum back into decimal.
+031  FA                   STC                     ; no borrow into the first digit
+032  F9                   TCS
+033  94                   SUB R4
+034  F1                   CLC
+035  88                   ADD R8
+036  FB                   DAA
+037  B8                   XCH R8                  ; ones
+038  F9                   TCS
+039  95                   SUB R5
+03A  F1                   CLC
+03B  89                   ADD R9
+03C  FB                   DAA
+03D  B9                   XCH R9                  ; tens
+03E  F9                   TCS
+03F  96                   SUB R6
+040  F1                   CLC
+041  8A                   ADD R10
+042  FB                   DAA
+043  BA                   XCH R10
+044  F9                   TCS
+045  97                   SUB R7
+046  F1                   CLC
+047  8B                   ADD R11
+048  FB                   DAA
+049  BB                   XCH R11
+04A               
+04A  A9                   LD R9
+04B  50 84                JMS putdigit
+04D  A8                   LD R8
+04E  50 84                JMS putdigit
+050  20 51                FIM P0, lo(years)
+052  51 00                JMS puts1
+054               
+054               ; candles: one row of ten for each ten years ...
+054  A9                   LD R9
+055  14 60                JCN Z, ones
+057  F4                   CMA
+058  F2                   IAC
+059  B4                   XCH R4                  ; R4 = -tens, counts up to zero
+05A  20 5A        row:    FIM P0, lo(tenrow)
+05C  51 00                JMS puts1
+05E  74 5A                ISZ R4, row
+060               ; ... and a last row for the odd years
+060  A8           ones:   LD R8
+061  14 74                JCN Z, cake
+063  F4                   CMA
+064  F2                   IAC
+065  B4                   XCH R4
+066  20 74                FIM P0, lo(indent)
+068  51 00                JMS puts1
+06A  20 7F        candle: FIM P0, lo(one)
+06C  51 00                JMS puts1
+06E  74 6A                ISZ R4, candle
+070  20 82                FIM P0, lo(newline)
+072  51 00                JMS puts1
+074               
+074  20 0F        cake:   FIM P0, lo(caketop)
+076  52 00                JMS puts2
+078  A9                   LD R9
+079  50 84                JMS putdigit
+07B  A8                   LD R8
+07C  50 84                JMS putdigit
+07E  20 37                FIM P0, lo(cakerest)
+080  52 00                JMS puts2
+082  40 82        done:   JUN done                ; the 4004 has no HALT; it just waits here
+084               
+084               ; print the decimal digit in the accumulator
+084               putdigit:
+084  B3                   XCH R3
+085  D3                   LDM 3                   ; ASCII '0'..'9' = $30..$39
+086  B2                   XCH R2
+087               ; print the character in R2 (high nibble), R3 (low nibble)
+087               putchar:
+087  2D                   SRC P6
+088  A3                   LD R3
+089  E2                   WRR
+08A  2F                   SRC P7
+08B  A2                   LD R2
+08C  E2                   WRR
+08D  C0                   BBL 0
+08E               
+08E               ; ---------------------------------------------------------------------------
+08E               ; Text lives in ROM, and FIN can only read the page it executes in, so each
+08E               ; page of text carries its own copy of the print loop.
+08E               ; ---------------------------------------------------------------------------
+100                       ORG $100
+100  32           puts1:  FIN P1                  ; character at (this page):R0R1 -> R2,R3
+101  A2                   LD R2
+102  1C 07                JCN NZ, p1out
+104  A3                   LD R3
+105  14 0E                JCN Z, p1end            ; a zero byte ends the string
+107  50 87        p1out:  JMS putchar
+109  71 00                ISZ R1, puts1           ; next character
+10B  60                   INC R0
+10C  41 00                JUN puts1
+10E  C0           p1end:  BBL 0
+10F               
+10F  0A 49 4E 54  banner: DB 10, "INTEL 4004 MICROPROCESSOR", 10
+12A  41 4E 4E 4F          DB "ANNOUNCED 15 NOVEMBER 1971", 10, 10, "  ", 0
+149  20 2D 20 00  minus:  DB " - ", 0
+14D  20 3D 20 00  equals: DB " = ", 0
+151  20 59 45 41  years:  DB " YEARS", 10, 10, 0
+15A  20 20 20 20  tenrow: DB "     i i i i i i i i i i", 10, 0
+174  20 20 20 20  indent: DB "          ", 0
+17F  69 20 00     one:    DB "i ", 0
+182  0A 00        newline: DB 10, 0
+184               
+200                       ORG $200
+200  32           puts2:  FIN P1
+201  A2                   LD R2
+202  1C 07                JCN NZ, p2out
+204  A3                   LD R3
+205  14 0E                JCN Z, p2end
+207  50 87        p2out:  JMS putchar
+209  71 00                ISZ R1, puts2
+20B  60                   INC R0
+20C  42 00                JUN puts2
+20E  C0           p2end:  BBL 0
+20F               
+20F  20 20 2E 2D  caketop:  DB "  .-----------------------.", 10
+22B  20 20 7C 20            DB "  |  HAPPY ", 0
+237  54 48 20 42  cakerest: DB "TH BIRTHDAY  |", 10
+246  20 20 7C 20            DB "  |   2300 TRANSISTORS,   |", 10
+262  20 20 7C 20            DB "  |    STILL COUNTING.    |", 10
+27E  20 20 27 2D            DB "  '-----------------------'", 10, 0

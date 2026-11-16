@@ -1,0 +1,16 @@
+1016 o fuzz=3000 caught=0 first=-1
+1302 c fuzz=3000 caught=0 first=-1
+852 o fuzz=3000 caught=0 first=-1
+1057 c fuzz=3000 caught=0 first=-1
+1341 o fuzz=3000 caught=0 first=-1
+1051 c fuzz=3000 caught=0 first=-1
+813 c fuzz=3000 caught=0 first=-1
+990 o fuzz=3000 caught=0 first=-1
+1166 o fuzz=3000 caught=0 first=-1
+931 c fuzz=3000 caught=0 first=-1
+1104 o fuzz=3000 caught=0 first=-1
+1076 o fuzz=3000 caught=0 first=-1
+1085 o fuzz=3000 caught=0 first=-1
+1146 o fuzz=3000 caught=0 first=-1
+1042 c fuzz=3000 caught=0 first=-1
+911 c fuzz=3000 caught=0 first=-1

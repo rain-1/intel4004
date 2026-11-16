@@ -1,0 +1,20 @@
+# build products (experiments/busicom is a superseded pilot holding third-party
+# downloads; the finished tool is in /busicom)
+/build/
+/i4004
+/i4004-vectors
+/i4004-busicom
+__pycache__/
+/experiments/lesion/lesion
+/experiments/lesion/study
+/experiments/busicom/
+
+# regenerable 23 MB probe dump from the lesion study
+/experiments/lesion/results/probe.bin
+
+# unused 14 MB download (Wikimedia layout photo); not needed by anything here
+/source/wikimedia-4004-chip-layout.jpg
+
+# work on other chips: large third-party downloads and ROMs whose owner has
+# not been asked about redistribution. Kept out until that is sorted.
+/chips/

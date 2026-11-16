@@ -1,0 +1,62 @@
+t	mode	cls	nbad	rbad	nosync	unstable	kind	x	y	gate	a	b	onlycyc	groups
+35	c	none	0	0	0	0	protect	192.0	281.6	VSS2	TEST	VSS2	False	
+35	o	none	0	0	0	0	protect	192.0	281.6	VSS2	TEST	VSS2	False	
+105	c	none	0	0	0	0	protect	192.0	337.5	VSS2	RESET	VSS2	False	
+105	o	none	0	0	0	0	protect	192.0	337.5	VSS2	RESET	VSS2	False	
+277	c	none	0	0	0	0	protect	1785.9	458.4	VSS2	VSS2	PHI2	False	
+277	o	none	0	0	0	0	protect	1785.9	458.4	VSS2	VSS2	PHI2	False	
+365	c	none	0	0	0	0	protect	1785.6	516.0	VSS2	VSS2	PHI1	False	
+365	o	none	0	0	0	0	protect	1785.6	516.0	VSS2	VSS2	PHI1	False	
+413	c	none	0	0	0	0	pullup	123.3	595.0	107	SYNC	VDD	False	
+443	o	none	0	0	0	0	pulldown	1188.5	569.5	537	VSS2	94	False	
+450	o	none	0	0	0	0	pulldown	1346.0	570.4	540	VSS2	95	False	
+522	c	none	0	0	0	0	pulldown	1159.6	627.9	118	VSS2	536	False	
+525	c	none	0	0	0	0	pulldown	1286.0	628.0	124	VSS2	539	False	
+534	o	none	0	0	0	0	load	1335.9	645.1	VDD	VDD	540	False	
+619	o	none	0	0	0	0	pulldown	755.5	716.5	570	VSS2	141	False	
+627	c	none	0	0	0	0	pulldown	942.6	732.9	572	VSS2	964	False	
+689	c	none	0	0	0	0	pullup	1230.0	803.0	579	VDD	123	False	
+771	c	none	0	0	0	0	pullup	675.0	905.5	598	VDD	170	False	
+774	c	none	0	0	0	0	pullup	753.0	906.0	600	VDD	166	False	
+784	c	none	0	0	0	0	pass	1362.2	899.5	180	606	971	False	
+807	o	none	0	0	0	0	pulldown	226.7	915.1	601	VSS2	596	False	
+867	c	none	0	0	0	0	pulldown	178.5	991.3	631	VSS2	986	False	
+892	o	none	0	0	0	0	pulldown	1261.4	1020.4	PHI2	VSS2	87	False	
+947	c	none	0	0	0	0	pulldown	813.5	1073.5	PHI1	VSS2	621	False	
+990	o	none	0	0	0	0	pulldown	491.7	1114.1	206	VSS2	198	False	
+1070	c	none	0	0	0	0	pullup	1463.5	1250.6	248	VDD	246	False	
+1175	c	none	0	0	0	0	pullup	1407.8	1341.6	254	VDD	252	False	
+1281	c	partial	10	0	0	0	pulldown	578.5	1505.1	240	VSS2	668	False	ISZ(10/16)
+1304	c	none	0	0	0	0	pass	521.0	1516.9	199	1048	1051	False	
+1420	c	none	0	0	0	0	pullup	1584.5	1643.4	680	VDD	212	False	
+1440	c	none	0	0	0	0	pullup	1597.6	1644.9	678	VDD	261	False	
+1490	c	none	0	0	0	0	pullup	346.5	1685.5	299	VDD	314	False	
+1661	c	none	0	0	0	0	pass	1525.0	1866.5	290	726	1069	False	
+1661	o	none	0	0	0	0	pass	1525.0	1866.5	290	726	1069	False	
+1669	o	none	0	0	0	0	pulldown	1484.0	1880.1	324	VSS2	319	False	
+1808	o	none	0	0	0	0	pass	902.0	2047.5	193	752	1083	False	
+1835	c	none	0	0	0	0	pullup	1159.0	2084.2	763	VDD	328	False	
+1910	o	partial	6	0	0	0	pulldown	519.4	2151.5	358	VSS2	377	False	NOP/undef(2/18) ACC-group(4/14)
+1911	c	partial	1	0	0	0	pulldown	538.5	2151.5	358	VSS2	376	False	ACC-group(1/14)
+1948	c	none	0	0	0	0	pulldown	612.0	2191.5	751	VSS2	371	False	
+1948	o	partial	1	0	0	0	pulldown	612.0	2191.5	751	VSS2	371	False	ACC-group(1/14)
+1975	o	none	0	0	0	0	pullup	1584.5	2214.5	193	VDD	791	False	
+1989	c	partial	1	0	0	0	pulldown	544.3	2230.6	383	VSS2	376	False	ACC-group(1/14)
+1989	o	partial	1	0	0	0	pulldown	544.3	2230.6	383	VSS2	376	False	ACC-group(1/14)
+2035	c	none	0	0	0	0	pullup	1159.1	2285.2	802	VDD	329	False	
+2121	c	global	256	0	0	0	protect	1779.8	2385.7	VSS2	VSS2	D2	False	NOP/undef JCN FIM SRC FIN JIN JUN JMS INC ISZ ADD SUB LD XCH BBL LDM IO-write IO-read ACC-group
+2121	o	none	0	0	0	0	protect	1779.8	2385.7	VSS2	VSS2	D2	False	
+2122	c	none	0	0	0	0	pullup	1430.5	2369.0	407	VDD	340	False	
+2134	o	partial	1	0	0	0	pulldown	573.5	2411.9	376	VSS2	413	False	ACC-group(1/14)
+2144	c	global	256	0	0	0	protect	895.3	2411.1	VSS2	VSS2	D0	False	NOP/undef JCN FIM SRC FIN JIN JUN JMS INC ISZ ADD SUB LD XCH BBL LDM IO-write IO-read ACC-group
+2144	o	none	0	0	0	0	protect	895.3	2411.1	VSS2	VSS2	D0	False	
+2146	c	none	0	0	0	0	pulldown	1023.5	2403.5	820	VSS2	821	False	
+2146	o	none	0	0	0	0	pulldown	1023.5	2403.5	820	VSS2	821	False	
+2147	c	global	256	0	0	0	protect	1361.7	2412.2	VSS2	VSS2	D1	False	NOP/undef JCN FIM SRC FIN JIN JUN JMS INC ISZ ADD SUB LD XCH BBL LDM IO-write IO-read ACC-group
+2147	o	none	0	0	0	0	protect	1361.7	2412.2	VSS2	VSS2	D1	False	
+2177	c	none	0	0	0	0	pullup	479.0	2459.0	824	VDD	825	False	
+2186	o	none	0	0	0	0	pullup	1464.0	2467.5	826	12	VDD	False	
+2227	c	none	0	0	0	0	pulldown	1719.4	2608.7	422	VSS2	822	False	
+2227	o	none	0	0	0	0	pulldown	1719.4	2608.7	422	VSS2	822	False	
+2234	c	global	256	0	0	0	protect	1849.8	2619.1	VSS2	VSS2	D3	False	NOP/undef JCN FIM SRC FIN JIN JUN JMS INC ISZ ADD SUB LD XCH BBL LDM IO-write IO-read ACC-group
+2234	o	none	0	0	0	0	protect	1849.8	2619.1	VSS2	VSS2	D3	False	

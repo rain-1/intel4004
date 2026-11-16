@@ -1,0 +1,350 @@
+BUSICOM 141-PF FIRMWARE ON THE TRANSISTOR-LEVEL 4004
+=====================================================
+
+What it is
+----------
+The Busicom 141-PF printing calculator (1971) was the application the 4004 was
+designed for. Its firmware (1280 bytes in five 4001 ROMs, the fifth being the
+optional square-root ROM) runs here unmodified on the switch-level simulation of
+the 4004 netlist extracted from the mask tracings. Behavioural models stand in for
+the rest of the machine: the 4001 ROMs and 4002 RAMs (sim/mcs4.c, as for the
+other demos), the three 4003 shift registers, the keyboard matrix with its
+decimal-point and rounding switches, the printer drum with its sector and index
+signals, the hammers, the ribbon colour, paper advance and the three lamps.
+The paper tape is printed as text.
+
+The same firmware and peripheral models also run on the instruction-level
+reference emulator (sim/ref4004.c). The two runs are compared bus cycle by bus
+cycle.
+
+    make i4004-busicom            # build the tool
+    make busicom                  # demo: 2 SQRT on the transistor-level chip (~15-30 s)
+    make test-busicom             # 49 calculations, see "What was verified"
+
+    ./i4004-busicom 2 SQRT
+    |              2  SQ    |
+    |1.4142135623730  SQ    |
+    |                       |
+    transistor-level: 195384 cycles (2.11 s of calculator time) in 14.0 s ...
+
+    ./i4004-busicom --ref 18 + 42 + =          # reference emulator, instant
+    |             18  +     |
+    |             42  +     |
+    |             60     *  |
+    |                       |
+
+Run it from the repository root (it reads netlist/4004.net and
+source/busicom/busicom-141pf.bin by default).
+
+How to use it
+-------------
+    i4004-busicom [options] KEY...
+
+Keys go on the command line, one per word or quoted together ("18 + 42 + =").
+Case does not matter. A number such as 18 or 3.25 is typed digit by digit.
+Shell users: quote * and % ('*' or "*"), or write X for *.
+
+  0-9 .         digits and decimal point
+  00 000        double and triple zero keys
+  +  -          add the entry to / subtract it from the totals. The 141-PF works
+                like an adding machine: number first, then + or -.
+                "100 + 25 - =" gives 75; "=" after + / - prints the total (marked
+                * in column 18) and clears it.
+  *  /  (X)     multiply / divide; finished by =, % or M=+ / M=-
+  =             equals
+  %             percent: finishes * or / and divides by 100 ("200 * 15 %" -> 30.00)
+  SQRT (SQ)     square root of the entry (listing: of its absolute value)
+  S (SIGN, +/-) change the sign of the entry (negative numbers print in red)
+  EX            exchange the operands of * and /
+  <> (DIAMOND)  subtotal: print; after + / - print the subtotal and clear it
+  <>2           the second diamond key, same function
+  CE            clear entry
+  C             clear everything except memory (also clears an overflow)
+  M+ M-         add / subtract the entry to / from memory
+  M=+ M=-       = then add / subtract the result to / from memory
+  RM            recall memory
+  CM            recall and clear memory
+  FEED          hold the paper-advance button (a blank line per drum turn held)
+
+Switches (they are read when the next key is pressed, as on the machine):
+  DP0 .. DP6, DP8   decimal-point selector: number of decimals (there is no 7)
+  FLOAT             rounding switch: floating point (* / % and SQRT ignore DP)
+  ROUND             rounding switch: round 5/4 to DP decimals ("^" printed when
+                    the result was rounded up)
+  TRUNC             rounding switch: truncate to DP decimals
+The default is DP0 FLOAT. Additions and subtractions always use the DP setting
+(entries are cut to DP decimals, whatever the rounding switch says).
+
+The paper tape: 15 digit columns, then column 17 (operation: + - X / = SQ % M+
+M- <> C R ^ ...) and column 18 (* total, M memory, M+ / M- , Ex, # ...). A line
+printed in red (negative number) is marked "red", or shown in red with --color.
+A line of 15 dots is the overflow print. Character tables: listing chapter 3.3.
+
+Options:
+  --ref              instruction-level reference emulator instead of the netlist
+  --cycles N         stop at the first instruction boundary at or after N cycles
+                     (default 50,000,000, i.e. 9 minutes of calculator time)
+  --log FILE         bus-activity log: every fetch, SRC and I/O transfer
+  --quiet            only the tape (no summary line)
+  --verbose          key presses/releases, lamps, hammer fires (with drum row and
+                     the time into the sector), paper advances, on stderr
+  --color            red lines in red (ANSI)
+  --hold S, --gap S  key held S drum sectors (default 3); the next key comes at
+                     least S sectors (default 2) after the release and only when
+                     the firmware is idle again
+  --drum emu102|pilot, --sector-ms F, --pulse-ms F
+                     drum model variants (see "Peripheral model")
+  --net FILE, --rom FILE
+Exit status 0 when the run ended idle after the last key, 3 when the cycle limit
+came first.
+
+Timing: one instruction cycle is 10.8 us (8 clock periods of 1.35 us, listing
+chapter 3.1), so the calculator time in the summary is real 1971 time. The
+transistor-level simulation does about 14,000 cycles/s on one core of the
+development machine (Linux, 12 threads), i.e. about 0.15x real time: a typical
+calculation (250k-600k cycles, 2.5-6.5 s of calculator time) takes 20-60 s.
+
+When does a run end? Keys are pressed on a schedule decided while the run goes,
+in the same way for both CPUs: the first key one drum revolution (13 sectors)
+after power-on; each later key once the previous one has been released for
+--gap sectors AND the firmware has come back to its idle point. The idle point
+is the WMP at $01D in the main loop that writes the lamps; the main loop only
+gets there when the key buffer is empty and no calculation is running. The run
+stops right after that instruction once all keys have been pressed and released,
+so the lamps in the summary are final. With --cycles the run stops at the first
+instruction boundary at or after N on both CPUs.
+
+The "extra fetch" of the feasibility pilot
+------------------------------------------
+In the pilot (experiments/busicom/), the reference log of "1 8 + 4 2 + =" had one
+more line than the transistor-level log: @0FD @0FE versus @0FD at the end. Cause:
+the two runs stopped differently at the cycle limit, not a difference in
+behaviour. The reference loop runs whole instructions while cycles < N, so the
+two-cycle instruction "JCN TN $0FD" (the keyboard routine waiting for the sector
+signal) that started at cycle 849,999 ran to cycle 850,001 and logged both of its
+fetches (its summary said "850001 cycles"). The board loop runs whole instruction
+CYCLES while cycles < N and stopped after the first cycle of that instruction.
+In the "2 SQRT" run the limit happened to fall on an instruction boundary.
+Neither model was wrong. Fix: the board run now tracks instruction boundaries
+(it knows which opcodes take two cycles) and also stops only at a boundary, and
+normal runs stop at a defined point in the firmware (above). Checked: with
+--cycles 30000, 30001 and 30002 the two logs are identical (32,869 / 32,869 /
+32,871 lines); every regression case compares the complete logs byte for byte.
+
+What was verified
+-----------------
+ROM image. Extracted from the listing's address/byte columns: all 1280 addresses
+$000-$4FF defined once, no conflicts, SHA-1 6ab79dc4...a4826d. The first byte of
+every one of the 632 native-code lines was decoded and agrees with the mnemonic
+written on that line.
+
+Regression (busicom/test_busicom.py, make test-busicom): 49 key sequences covering
+adding/subtracting (with negative results, the sign key, subtotal, CE, the 00 and
+000 keys, a 14-digit entry, the paper-feed button), multiply (up to a 13-digit
+product, chained, negative, decimal, constant multiplication), divide (exact and
+recurring), percent, the decimal-point selector at 1, 2, 4, 6 and 8 decimals with
+all three positions of the rounding switch, memory (M+, M-, M=+, M=-, RM, CM),
+square root (integer, fractional, negative operand), overflow (divide by zero,
+multiply, add; recovery with C), and all five "unusual results" of listing
+chapter 4.6. For each:
+  (a) transistor level vs reference: bus logs byte-identical and tapes identical;
+  (b) the tape equals the expected tape, and the result line equals the value
+      computed with Python's Decimal under the stated rule (exact; truncated or
+      rounded half-up to the DP decimals; or truncated to 13 or 14 significant
+      digits in floating mode), or for the listing's quirks the listing's text;
+  (c) final lamps (memory, overflow, minus) as expected;
+  (d) on the reference only, the same tape with the drum model's other phase
+      (--drum pilot) and with a 10 ms sector pulse.
+Result: 49/49 pass. Together 14,560,184 instruction cycles (157 s of calculator
+time) and 15,888,563 log lines, identical between the netlist and the reference.
+Cases run 128k-600k cycles each. Runtime: 304 s wall on 12 hardware threads
+(36 min CPU; 23-117 s per case with all threads busy). Too slow for the default
+"make test", so it is the separate target "make test-busicom". Logs are kept in
+build/busicom/ only when a case fails (or with --keep). "--ref-only" runs the
+reference checks in under a second.
+
+Agreement with the listing's own examples:
+  - SQRT(2) prints 1.4142135623730 (listing chapter 3.3 gives the hammer data for
+    exactly this line); SQRT(5936123) = 2436.4160153799 and SQRT(593.6123) =
+    24.364160153799, consistent with the listing's worked example (2436.41,
+    24.3641) to the digits it gives.
+  - "24 * 3 =" gives 72 and the constant register then multiplies "5 =" by 24.
+  - Chapter 4.6: "=" alone overflows; "10 / 3 = Ex <>" prints 100000000000000;
+    "10.01 / 3 = Ex <>" prints 000000000000.00; "10.01 / 3 = Ex / 3 =" prints
+    666666666666.6; "2 SQRT Ex <>" prints 28284271247460;
+    "(DP=0) 1 + (DP=3) 2 + =" prints 2.001. All exactly as the listing says.
+  - One difference: listing 4.6 item 1 says "10 Ex 3 =" gives "3.3333333333333"
+    (13 decimals). Here it prints 3.333333333333 (12 decimals), and so does
+    "10 / 3 =". Both CPU models agree, and the firmware gives 13 decimals for
+    1 / 3 (0.3333333333333): the quotient has 14 digit positions and its first
+    digit is 0 whenever the dividend's leading digits are smaller than the
+    divisor's (03.33333333333 for 10/3), so 13 significant digits remain. Most
+    likely the listing's text carries one digit too many. That explanation comes
+    from the observed outputs, not from tracing the division code; not checked
+    on a real machine.
+
+Outputs that differ from naive arithmetic, all firmware behaviour:
+  - Floating-point division keeps 13 or 14 significant digits, truncated (1/3 ->
+    0.3333333333333, 10/3 -> 3.333333333333, 7/2 -> 3.5000000000000).
+  - Entries for + and - are cut (not rounded) to the DP setting
+    ("DP2 1.5 + 2.256 +" adds 2.25; with DP0, 1.5 counts as 1).
+  - Rounding (ROUND) is 5/4 at DP decimals for * / %; TRUNC truncates; neither
+    affects entries.
+  - "=" after a fresh entry with no operation divides (default division),
+    e.g. "10 M+ 4 M=-" subtracts 0/4 from memory.
+  - The listing's chapter 4.6 quirks above.
+No case showed a model problem: no difference between the two CPUs, and every
+difference from arithmetic is explained by the listing.
+
+Peripheral model and its support
+--------------------------------
+Sources: listing chapters 3.1-3.3 and the code; the Model-102 printer emulator
+(model-102-printer-sim.c, Tim McNerney, 2008, for a PIC driving the 4004.com
+replica); the 4003 description in the MCS-4 data sheet (as quoted by the
+pyntel4004 documentation; the shift edge is not stated there).
+
+ 1. Port assignments (ROM0 bits 0-2: keyboard clock, shared data, printer clock;
+    ROM1: keyboard rows; ROM2 bit 0 index, bit 3 paper-advance button; RAM0
+    bits 0, 1, 3: red ribbon, fire hammers, advance paper; RAM1 bits 0-2: lamps).
+    Support: listing 3.1, consistent with the code. Solid.
+ 2. 4003 = 10-bit serial-in shift register clocked on the rising edge of its
+    clock in the firmware's logic sense; outputs always enabled; printer = two
+    cascaded 4003s (20 bits). Support: the firmware raises clock together with
+    the data bit and then drops both in the next WRR ($064-$068, $28f-$292), so
+    data is only valid on the rising edge; a falling-edge register would shift in
+    zeros and the keyboard could not work. Data sheet: power-on clear sets all
+    outputs to VSS (logic 0), as modelled (all columns selected until the first
+    scan flushes them). The enable pin and serial out are not modelled (enable
+    assumed tied active; cascading modelled as one 20-bit register).
+ 3. Keyboard: a column is selected by a 0 on its 4003 output; a pressed key in a
+    selected column puts a 1 on its ROM1 row; columns 9 and 10 carry the
+    decimal-point switch (value in binary on the rows) and the rounding switch
+    (row 0 = round, row 3 = truncate) through diodes. Support: listing 3.2 and
+    the scan code ($0B0-$0DB): one low bit is walked through 8 columns, then
+    columns 9 and 10 are read at $02F/$034; the KBP decoding requires 1 = pressed.
+    The stored values (WR.S2 = 0/1/8, WR.S3 = DP) match listing 4.3. No contact
+    bounce, no key rollover.
+ 4. Printer drum: 13 sectors of 28 ms (2593 cycles); sector pulse 5 ms (463
+    cycles); index during the whole of sector 0; row k is under the hammers
+    during sector k. Support: listing 3.3 (28 ms, 13 rows, 364 ms per turn) and
+    the Model-102 emulator (pulse 5 ms "Monroe experiments suggest 10ms"; sector
+    0 signal from the start of sector 0's pulse to the end of sector 0; it prints
+    the character of the current sector when it samples the hammers 10 ms into
+    the sector).
+ 5. Polarities (in 4004 logic levels): TEST = 1 during the sector pulse and 0
+    otherwise; index = 1 on ROM2 bit 0 during sector 0. This is "--drum emu102",
+    the default. It differs from the pilot ("--drum pilot": TEST = 0 during the
+    pulse, and the printed row taken as the previous sector). Support for emu102:
+    (i) the firmware samples the index right after the sector signal goes
+    inactive and fires the hammers when it goes active again ($23F-$272); with
+    the Model-102 emulator's sector numbering the row fired must belong to the
+    current sector, which only holds if "inactive" is the 5 ms pulse; (ii) with
+    this phase the model fires the hammers 6.7-7.8 ms into the sector, which
+    matches the emulator's comment "SAMPLE_DELAY_MS 10 // 7ms from simulation +
+    42% margin"; in the pilot phase they fire 0.1 ms into the next sector; (iii)
+    both the sector and index signals of the emulator are active-low PIC outputs,
+    and with the MCS-4's negative logic (logic 1 = the more negative level) both
+    then read as logic 1 when active, a single consistent convention. Not
+    verified: how the replica or the real machine wired these signals.
+    Effect: the printed results are the same in both phases (all 49 cases); only
+    the timing changes (the pseudo-code interpreter runs while the signal is
+    "active", so calculations take about 23/28 of the time in emu102 and 5/28 in
+    the pilot phase: SQRT 2 takes 1.4 s from key to result here, 2.6 s in the
+    pilot).
+ 6. Timing tolerance (reference, all 49 cases): identical tapes for pulse widths
+    from 2.5 to 20 ms and sector periods of 25 and 32 ms, key hold of 1-3 sectors.
+    With pulses of 2 ms or less the firmware misses sector pulses and prints wrong
+    rows (e.g. "33 33333333333"), so the 5 ms (or 10 ms) figures are within the
+    working range but this does not pin them down. With a 10 ms pulse the hammers
+    fire at 10.1 ms, after the Model-102 emulator's 10 ms sample point, so that
+    emulator's choice of 5 ms is consistent with its own sample delay.
+ 7. Hammers print when the fire bit (RAM0 bit 1) rises, using the 20-bit
+    register's contents at that moment: bit 0 (the last bit shifted) = column 17,
+    bit 1 = column 18, bits 3-17 = columns 1-15. Support: listing 3.3 (bit table
+    and the SQRT(2) hammer data, which this model reproduces).
+ 8. Red ribbon latched for the line whenever RAM0 bit 0 is seen high between two
+    paper advances. Support: the firmware sets it once per line at $233 and the
+    later WMPs (fire = 2, then 0) clear it, so a level-sensitive model would never
+    print red; the Model-102 emulator latches it per line the same way (it marks
+    the line negative). The pilot model checked the bit only at fire time and so
+    could never print red.
+ 9. Paper advance: one line per rising edge of RAM0 bit 3 (the firmware writes
+    8, 0, 0, 0 over four sectors). The paper-advance button is ROM2 bit 3, held
+    for --hold sectors; held longer it feeds more lines, as the main loop repeats.
+10. Lamps: RAM1 port bits 0-2, reported in the summary and with --verbose.
+
+Unverified points from the feasibility report, status now:
+  - Drum pulse width: unknown for the real machine (5 ms in the Model-102
+    emulator, 10 ms suggested by "Monroe experiments"); results unchanged for
+    2.5-20 ms. Still unverified.
+  - Index phase: now taken from the Model-102 emulator (whole of sector 0 from the
+    start of its pulse) instead of being fitted; the pilot's "R12 lags by one"
+    rule was a symptom of the inverted TEST phase. Supported by that emulator, not
+    by hardware.
+  - Polarities: TEST inverted relative to the pilot, see item 5; index and key
+    rows unchanged. Supported by the firmware code and the emulator; not by
+    hardware.
+  - Peripheral sampling per instruction (reference) vs per cycle (board): safe,
+    because the netlist samples TEST at the end of a JCN's first cycle (see
+    vectors/README.md) and all other inputs are read by one-cycle RDR; the
+    regression confirms it.
+
+What is new, and what is not
+----------------------------
+As far as the feasibility study (experiments/FEASIBILITY-4004.txt, B2) could find:
+the 141-PF firmware has been run on many instruction-level emulators, on a
+redesigned gate-level 4004 (Carlini, IOCCC 2024), on real chips, and on Kintli and
+Scheffler's discrete-transistor reconstruction in hardware. Kintli's i400x analyzer
+simulates the mask-extracted netlists at switch level, but no report was found of
+the 141-PF being run on it (possible, unverified). What this adds, as far as
+found: the complete 141-PF firmware with its keyboard, switches and printer
+modelled, running on a switch-level simulation of the netlist extracted from the
+4004 mask tracings, checked bus cycle by bus cycle against an instruction-level
+emulator over 49 calculations. That is a modest claim; it does not show the
+netlist is correct in ways the firmware does not exercise, and the peripherals
+are behavioural models whose timing is inferred, not measured.
+
+Limits
+------
+- Only the 4004 is simulated at transistor level. The 4001, 4002 and 4003 are
+  behavioural models (the 4003 netlist exists in source/analyzer/ but is not
+  used); so are the keyboard and printer.
+- Peripheral timing and polarity are inferred from the listing, the code and the
+  Model-102 emulator (above), not from a real 141-PF.
+- No contact bounce, simultaneous keys, or keys pressed during a calculation (the
+  schedule always waits for idle; the firmware's key buffer is not exercised).
+- The model prints a character at the moment of firing; it does not model hammer
+  flight time or the ribbon mechanism.
+- Speed: ~14k cycles/s, about 0.15x real time.
+- The netlist simulation is switch level: no analogue effects, leakage or real
+  delays (see the main README).
+- Rounding/precision explanations above come from observed outputs and the
+  listing's descriptions; the division code itself was not traced.
+
+Files
+-----
+  busicom/busicom.c          the tool (i4004-busicom): peripherals, key schedule
+  busicom/test_busicom.py    the regression (make test-busicom)
+  busicom/extract_rom.py     ROM image from the listing (make busicom-rom LISTING=...)
+  source/busicom/busicom-141pf.bin   the firmware image
+  source/busicom/NOTICE.txt  its origin and licence; where to get the listing
+  experiments/busicom/       the original pilot (unchanged)
+
+Credits and licences
+--------------------
+- Busicom 141-PF firmware: binaries recovered by Tim McNerney and Fred Huettig
+  with the Computer History Museum (2005). The listing's notice: "The original
+  Busicom binary code is not a copyrighted work and may be freely distributed
+  without restriction." The image is included (source/busicom/).
+- Annotated listing, release 1.0.1 (2009): disassembly and reverse engineering
+  by Barry Silverman, Brian Silverman and Tim McNerney (2006); analysis,
+  comments and documentation by Lajos Kintli (2007). CC BY-NC-SA 2.5. Not
+  included: download it from
+  https://www.4004.com/2009/Busicom-141PF-Calculator_asm_rel-1-0-1.txt. Its
+  licence would allow an attributed non-commercial copy; it is left out because
+  nothing here needs it (see source/busicom/NOTICE.txt). Key names, character
+  tables and the expected results of its examples are cited from it.
+- Model-102 printer emulator: Tim McNerney (2008), CC BY-NC-SA 2.5; consulted
+  for the drum timing, not included.
+- The netlist, from the 4004.com mask tracings, is CC BY-NC-SA 3.0 (main README);
+  so everything run with it here is for non-commercial use.

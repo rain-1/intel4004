@@ -1,0 +1,38 @@
+source/busicom/ -- third-party material for the Busicom 141-PF demo
+=====================================================================
+
+busicom-141pf.bin
+  The Busicom 141-PF calculator firmware: 1280 bytes, addresses $000-$4FF (five 4001
+  ROMs; the fifth, $400-$4FF, is the optional square-root ROM).
+  SHA-1   6ab79dc4148e98888a5944580b12df9709a4826d
+  SHA-256 c6af325d64b0895a8c6f7298e5443bbf5814783fabd6a1bcd2df08a9bec2ceb7
+
+  Origin: binaries recovered by Tim McNerney and Fred Huettig in collaboration with the
+  Computer History Museum (November 2005); disassembly and reverse engineering by Barry
+  Silverman, Brian Silverman and Tim McNerney (November 2006); detailed analysis and
+  comments by Lajos Kintli (July 2007). This image was rebuilt here from the address and
+  byte columns of their annotated listing, release 1.0.1 (15 November 2009), with
+  busicom/extract_rom.py (text parsing only).
+
+  Licence: the listing's legal notice says: "The original Busicom binary code is not a
+  copyrighted work and may be freely distributed without restriction." The image here
+  is that binary code and nothing else.
+
+The annotated listing itself is NOT kept in this tree. Download it from
+  https://www.4004.com/2009/Busicom-141PF-Calculator_asm_rel-1-0-1.txt
+  (linked from https://www.4004.com/busicom/ ; the copy used here had
+  SHA-256 4b1b27167096ed466cf2a616c21dd1635d574253e4d9eb3c26d2516b9d791358)
+and check that it gives the same image with
+  make busicom-rom LISTING=path/to/Busicom-141PF-Calculator_asm_rel-1-0-1.txt
+
+  Its comments and documentation are (c) the authors above, licensed CC BY-NC-SA 2.5
+  (https://creativecommons.org/licenses/by-nc-sa/2.5/legalcode). That licence would
+  allow a verbatim, attributed, non-commercial copy in this tree. It is left out anyway:
+  nothing here needs it to build or test, so the tree redistributes only the
+  uncopyrighted binary. The key names, printer character tables and the expected results
+  of the listing's examples used in busicom/ and docs/BUSICOM.txt are short factual
+  extracts, credited to the listing where they are used.
+
+Also consulted, not included: Tim McNerney's Shinshu Seiki Model-102 printer emulator
+(https://www.4004.com/assets/model-102-printer-sim.c, CC BY-NC-SA 2.5), for the printer
+drum timing and signal phases.

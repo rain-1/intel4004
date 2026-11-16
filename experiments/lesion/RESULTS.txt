@@ -1,0 +1,454 @@
+LESION STUDY OF THE TRANSISTOR-LEVEL INTEL 4004
+================================================
+Date: 2026-11-15/16. All code and data in experiments/lesion/ (plus the page web/4004-lesion.html).
+Nothing outside those was modified. Machine: 12 hardware threads (6 cores), shared with other
+jobs; this study used at most 8 worker processes, niced.
+
+SUMMARY
+-------
+- All 4484 lesions (2242 transistors x stuck-open / stuck-closed) were run against a deterministic,
+  structured test set of 2046 single-instruction tests (every opcode) + 3 reset tests, verified
+  against the reference emulator (0 mismatches). Wall time 59 min on 8 niced workers (6.84 CPU-h).
+- Stuck-open: 92.5% of lesions change something (67.4% "global"). Stuck-closed: 71.5% (54.7%
+  global); without the 427 loads (stuck-closed is a no-op by construction) 88.3%.
+- Functional clusters, built only from WHICH instructions break and HOW, are spatially compact
+  (30 of the 31 clusters with >= 4 members are more compact than >= 99.5% of random same-size
+  sets; the 31st has p = 0.046) and match a floorplan identified independently from the intact chip's
+  behaviour: all 128 index-register transistors fall in one cluster ("every instruction; registers
+  lost when idle"), all 44 address-stack/PC-path ones in another, the DCL/CM-RAM latch in a third;
+  JCN, ISZ, FIN/JIN, SRC, DAA, KBP, DAC, CLB, CLC, ... each have their own small, tight cluster.
+- 808 lesions have no effect (168 open, 640 closed). 682 of them are explained by construction or by
+  a named model artefact; 126 remain unexplained. Follow-up of those 126: 7 are test gaps (random
+  2-8 instruction programs catch them; minimal tests given), 13 consistently invert a stack-pointer
+  bit (a relabelling of the 4-row stack ring: functionally equivalent, invisible at the pins in any
+  model), 53 change only the lesioned device's own nodes, 47 change internal nodes that never reach
+  the pins in 300 (16 of them: 3000) random programs, 6 change no node at the sampled instants.
+- 468 lesions break exactly one instruction (e.g. a load stuck open on the CMC decode line changes
+  only CMC's carry); 44 change ONLY the undocumented X2/X3 bus contents.
+- Compared with Jonas & Kording 2017 (6502, stuck-closed, "does the game boot"): 44.6% no effect
+  there; here 28.5% (11.7% without loads, which Visual6502 does not count as transistors). The
+  criteria differ greatly (any pin difference in 2046 tests vs. a game reaching its first frame).
+
+
+------------------------------------------------------------------------------------------------
+1. WHAT WAS DONE
+------------------------------------------------------------------------------------------------
+Chip model. netlist/4004.net (1100 nodes, 2242 transistors extracted from the 4004.com mask
+tracings: 427 depletion loads, 8 input-protection devices, 1807 others) simulated by a copy of
+the repository's switch-level simulator (experiments/lesion/lesionsim.c = sim/switchsim.c plus a
+per-transistor force[] array, a contention counter and a one-pass "which nodes are driven"
+helper). Each transistor is an ideal switch; after every clock edge connected groups of nodes are
+resolved: any path to VSS wins, else any path to VDD, else the group keeps its charge (shared by
+conductor area). Settling gives up after 400 passes.
+
+Lesions. For every transistor, two separate runs: stuck-open (force[t] = 0, never conducts) and
+stuck-closed (force[t] = 1, always conducts), i.e. 2242 x 2 = 4484 lesions, all run.
+
+Rig. experiments/lesion/study.c, adapted from sim/vectors.c: a scripted ROM drives the data bus,
+the chip's state is set up and read back ONLY through the pins with ordinary instructions:
+  set-up   : [rot x JMS] LDM/DCL, 8 x FIM, STC|CLC, LDM acc, 3 x (JUN; JMS) for the stack, JUN pc,
+             TEST pin level
+  test     : the instruction under test (1 or 2 cycles), I/O-read nibble driven at X2 if needed
+  read-out : WRR (acc at X2, PC = its fetch address, CM-RAM selection at M2), TCC + WRR (carry),
+             8 x SRC (register pair n at X2/X3, the documented SRC address), 3 x BBL (+ fetch: the
+             return addresses). 17 instruction cycles.
+Every pin sample of the instruction under test (bus nibble, which bus lines the CPU drives, CM-ROM
+and the four CM-RAM lines, SYNC; 8 per cycle) and the read-back state are compared with the intact
+chip. Tests sharing an initial state share one power-on + reset + set-up; the chip state is
+snapshotted after set-up and restored before each instruction (exact: --nosnap gives identical
+results, checked on 5 lesions).
+
+Test set (study --list-tests; results/tests.txt): 2046 single-instruction tests + 3 reset tests.
+  - Base, for EVERY opcode 00-FF, 6 initial states:
+      all-0   acc 0, regs 0, carry 0, TEST 0, DCL 0, PC 000, stack 000 x3, 2nd byte 00, I/O in 0
+      all-1   acc F, regs F, carry 1, TEST 1, DCL 7, PC FFF (wraps), stack FFF x3, 2nd byte FF, in F
+      0101    acc 5, regs 5, carry 0, TEST 1, DCL 5, PC 555, stack 555 x3, 2nd byte 55, in 5
+      1010    acc A, regs A, carry 1, TEST 0, DCL 2, PC AAA, stack AAA x3, 2nd byte AA, in A
+      up      acc A, R[i] = i, carry 1, TEST 0, DCL 3, PC 7FE (page edge -2), stack 123 456 789, 5A, in 3
+      down    acc 5, R[i] = 15-i, carry 0, TEST 1, DCL 4, PC 8FF (page edge -1), stack EDC BA9 876, A5, in C
+    with the stack pointer in 4 different positions (0-3 extra JMS before set-up), so each of the
+    four address-register rows serves as PC in some tests. 1536 tests.
+  - Extras (510): JCN all 8 combinations of (acc = 0, carry, TEST) mid-page and at a page edge
+    (128); ISZ register F (wrap, no jump), E and 0, at a page edge and mid-page (48); FIN/JIN in the
+    last byte of a page (32); ADD/SUB with 8 carry patterns (acc, operand, carry in) = (0,0,1)
+    (F,F,0) (5,A,1) (A,5,0) (5,5,1) (A,A,0) (F,1,0) (0,F,1), two per opcode (64), SBM/ADM with all 8
+    (16); other I/O reads with input nibbles 6, 9, 1 (18); KBP and DCL for every accumulator value
+    (32), DAA for every accumulator value x both carries (32); the other accumulator-group
+    instructions with acc 7, 8, 3, C and both carries (44); JMS and BBL with the stack pointer in
+    further positions (96).
+  - Reset: three loaded states (as in the pilot; all-F; 0101/1010), RESET held 64 clock periods,
+    read back.
+Golden check (study --verify): the intact chip's read-back state for all 2046 tests equals the
+instruction-level reference emulator sim/ref4004.c (linked unmodified): 0 mismatches; all three
+reset tests read back fully cleared. (Bus contents are compared lesion vs intact chip only; the
+reference emulator does not model X2/X3.) The pilot harness (lesion.c, random tests) was
+previously verified to reproduce vectors/v1 exactly.
+
+Per lesion the harness records (results/raw_lesions.txt.gz, one line per lesion, format in the
+header of study.c): for every test a 16-bit failure-kind mask:
+  ACC CY REG          final accumulator / carry / any index register wrong
+  PC STACK            final PC / any of the three stack entries wrong
+  CMRAM               CM-RAM selection (DCL) wrong
+  ADDR                address nibbles A1-A3 put out during the instruction differ
+  MBUS                M1/M2 samples differ (the chip fights the ROM data)
+  X1                  X1 nibble differs
+  XDOC                X2/X3 differ where the contents are documented (SRC address, I/O write data)
+  XUND                X2/X3 differ elsewhere: the undocumented internal-bus contents described in
+                      vectors/README.md
+  DRV                 the set of bus lines the CPU drives differs
+  CM                  CM-ROM/CM-RAM lines differ during the instruction
+  SYNC                SYNC differs;   NOSYNC  SYNC never came during reset (rig gave up waiting)
+  UNST                a settle hit the 400-pass cap during this test (non-convergence)
+plus the reset-test mismatches, the number of non-converging settles, a CONTENTION count (settles
+in which the forced-on device, whose gate says it should be off, joined a group that saw VSS and a
+strong, i.e. non-load, path to VDD at once: a fight the model resolves as a clean 0), and for the
+gate and both channel nodes of the lesioned device the number of samples (phi2 high, every clock
+period) in which the node was not connected to any supply or pin driver (FLOATS), compared with the
+intact chip's profile (results/floatprof.txt).
+
+Derived classes (analyze_study.py):
+  severity  global   the NOP tests fail (set-up/read-out themselves broken, or state lost) or >= 240
+                     opcodes fail on some test (same definition as the pilot)
+            broad    >= 12 of the 19 instruction groups fail on some test (typically a data/address bit)
+            partial  1-11 groups
+            reset-only, none
+  effect    first match of: non-convergence; SYNC/timing; data + PC/stack; register/acc/carry;
+            PC/stack; CM lines; bus contents only; undocumented X2/X3 only; reset only; no effect
+  device    load (gate and one terminal on VDD), protect (gate tied to VSS with a terminal, the 8
+            input-protection devices), pullup (a terminal on VDD), pulldown (a terminal on VSS), pass
+  flags     settle-cap, nosync, contention, floats (a node of the device floats in > 0.5% more samples
+            than in the intact chip), clock (gate is PHI1/PHI2), ext-pin (touches TEST, RESET, PHI1,
+            PHI2, which the rig drives as ideal sources), parallel (an identical device in parallel),
+            dynamic-node (no load on either channel node)
+
+Functional clusters (per transistor, both modes pooled). Signature = (a) the set of the 47
+instruction names (46 documented + "undefined") for which some test fails in either mode, (b) the
+failure kinds on idle tests (NOP and undefined opcodes: state that is lost or misread while no
+instruction acts on it), (c) the failure kinds on all other tests, (b)/(c) in 7 coarse groups
+(ACC/CY, REG, PC/STACK, CM, BUS, XUND, SYNC), (d) reset failure. Distance = mean of the Jaccard
+distances of (a), (b), (c); identical signatures are pooled, then merged by average linkage
+until the closest clusters are more than 0.3 apart. Names are generated from the members: "only X+Y"
+= every member breaks X and Y (>= 75%) and nothing else; "X+Y" = core set, some members break more;
+"idle: ..." = kinds failing with no instruction acting; [...] = kinds in the other tests.
+
+Floorplan reference ("blocks"). There is no labelled floorplan in the repository and Kintli's
+signal names (source/analyzer/i4004-signals.txt) are tied to schematic, not layout, coordinates. So
+the blocks were identified from the INTACT chip's behaviour (name_nodes.py on study --probe: every
+node's level at phi2 of each of the 8 slots of each test's instruction cycle, for the 2046 tests and
+600 more NOP tests from random states):
+  - a node equal (or inverse) to a set-up state bit in >= 99% of the random-state tests: index
+    register bit R<i>.b, address-register row bit ROW<j>.b (the 4 x 12-bit PC/stack file), PC bit
+    (the PC value outside the array: incrementer/address path), accumulator, carry, DCL, TEST;
+  - a node whose level in every test depends only on the slot: timing;
+  - a node whose level at X1-X3 depends only on the opcode: decode; where the opcode set equals a
+    decode signal named on Kintli's schematic (JCN, ISZ, JCN+ISZ, JUN+JMS, JIN+FIN, FIN+FIM+SRC+JIN,
+    INC+ISZ+XCH, INC+ISZ+ADD+SUB+XCH+LD, IO, IOR, IOW, BBL, JMS, LD, XCH, INC/ISZ, SBM, ADM, DAA, KBP,
+    TCS, ...) it gets that name, else OPR/OPA bit or an anonymous opcode set.
+  results/node_names.tsv lists 619 named nodes. A transistor belongs to a block if its gate or
+  channel touches a named node (gate counted double); the rest take the majority block of their 7
+  nearest labelled neighbours (marked "~"). figures/die_blocks.png shows the result.
+Spatial compactness of a cluster: median distance of its members from their median point, against
+2000 random transistor sets of the same size (p = share at least as compact).
+
+------------------------------------------------------------------------------------------------
+2. HEADLINE NUMBERS
+------------------------------------------------------------------------------------------------
+Golden: study --verify -> 2046 tests + 3 reset tests, 0 mismatches against sim/ref4004.c.
+Run time: one lesion = 3.9 s CPU on an idle core (golden pass); the sweep ran 22:36-23:35 (59 min)
+on 8 niced workers while other jobs loaded the machine; 6.84 CPU-hours (5.5 s per lesion).
+Simulator health: 173 lesions hit the 400-pass settle cap somewhere (83 open, 90 closed), 120 lost
+SYNC during reset (75/45); the intact chip never does either. Those results mean "broken", nothing
+finer.
+
+Severity (global = the NOP tests fail or >= 240 opcodes fail; broad = >= 12 of 19 instruction groups;
+partial = fewer):
+                       stuck-open      stuck-closed    stuck-closed, loads excluded (n=1815)
+  global              1510 (67.4%)    1226 (54.7%)    1226 (67.5%)
+  broad                  8 ( 0.4%)       2 ( 0.1%)       2 ( 0.1%)
+  partial              446 (19.9%)     326 (14.5%)     326 (18.0%)
+  reset-only           110 ( 4.9%)      48 ( 2.1%)      48 ( 2.6%)
+  none                 168 ( 7.5%)     640 (28.5%)     213 (11.7%)
+Per transistor (worse of the two modes): global 1798, broad 5, partial 315, reset-only 86, none 38.
+
+Effect class (first matching class, in this order):
+                                  stuck-open      stuck-closed
+  non-convergence (settle cap)     79 ( 3.5%)      88 ( 3.9%)
+  SYNC / timing                    76 ( 3.4%)      43 ( 1.9%)
+  data + PC/stack                 795 (35.5%)     670 (29.9%)
+  register/acc/carry only         358 (16.0%)     250 (11.2%)
+  PC/stack only                   495 (22.1%)     398 (17.8%)
+  CM lines (incl. DCL selection)  111 ( 5.0%)      75 ( 3.3%)
+  bus contents only                30 ( 1.3%)      26 ( 1.2%)
+  undocumented X2/X3 only          20 ( 0.9%)       4 ( 0.2%)
+  reset only                      110 ( 4.9%)      48 ( 2.1%)
+  no effect                       168 ( 7.5%)     640 (28.5%)
+(figures/effects.png.) "Global" is partly an observability effect: set-up and read-out go through
+the pins with ordinary instructions, so a lesion in one register bit, or in the circuits those
+instructions use, fails every test. The clusters below separate these cases.
+
+Severity by device class (stuck-open | stuck-closed):
+  load      n=427   global 297, partial 76, reset 29, none 25   |  none 427 (by construction)
+  pullup    n=170   global 147, partial 13, none 10             |  global 38, partial 2, none 130
+  pulldown  n=1033  global 599, broad 8, partial 265, reset 46,  |  global 729, partial 231,
+                    none 115                                     |  reset 31, none 42
+  pass      n=604   global 467, partial 92, reset 35, none 10    |  global 455, broad 2, partial 93,
+                                                                 |  reset 17, none 37
+  protect   n=8     none 8 (by construction)                     |  global 4 (D0-D3 shorted to VSS),
+                                                                 |  none 4 (TEST, RESET, PHI1, PHI2)
+
+------------------------------------------------------------------------------------------------
+3. FUNCTIONAL CLUSTERS AND THE FLOORPLAN
+------------------------------------------------------------------------------------------------
+289 distinct transistor signatures, merged into 53 clusters (41 with >= 2 members). Full list in
+results/clusters.tsv and results/summary.txt; figures/die_clusters.png shows each cluster on the
+die; figures/cluster_matrix.png the instructions each breaks. Names say only what the data say.
+
+  C0  612  every instruction; idle tests lose everything (acc, carry, registers, PC, CM, bus):
+           the chip is dead or its set-up/read-out path is. Timing ring (top left in the photo),
+           clock/bus drivers, central control. Spread 667 px: the "dead chip" set is not one place.
+  C1  447  every instruction; idle tests: only PC/stack wrong. Upper-right array (address stack)
+           plus the address incrementer/output path. Contains ALL 22 transistors touching
+           behaviourally identified address-stack cells and all 22 touching PC-path nodes.
+  C2  417  every instruction; idle tests: only index registers wrong. Lower-right array.
+           Contains ALL 128 transistors touching an identified index-register bit node.
+  C3  158  every instruction; idle tests: accumulator/carry wrong. Left-centre (accumulator,
+           ALU area); 12 of the 83 accumulator/carry-node transistors.
+  C4  105  every instruction; idle tests: only CM lines wrong. DCL/CM-RAM latch and CM drivers
+           (lower left in layout = upper left in the photo); 20 of 26 DCL-node transistors
+           (4 more in C29 "only DCL").
+  C5   86  reset tests only. Scattered over control logic (spread 322).
+  C6   68  JCN (some also ISZ), PC wrong: the condition logic. Includes 3 of the 4 transistors on
+           the TEST input node.
+  C8   37  SUB+SBM (complement path), C9 31 KBP (22 of them on accumulator-area nodes, spread
+           80 px), C16 13 DAA (spread 63), C13 13 INC+ISZ+XCH (register write-back), C14 13 FIN+JIN,
+           C15 13 SRC (CM lines), C17-C29: INC+ISZ+ADD+SUB, INC+ISZ, CLC, LD, CLB, FIN (bus only),
+           XCH, DAC, TCS, ADM, only DCL, only I/O reads, ...
+  C7   38  no effect in either mode (see section 4).
+  C32   3  every instruction, SYNC only: the SYNC output driver (left edge, next to the pad).
+Spatial test: of the 31 clusters with >= 4 members other than "no effect", 30 have p <= 0.0045 for
+compactness (most at the floor of 1/2001); the exception is C30 (only I/O reads, n=4, p = 0.046).
+Floorplan reference (figures/die_blocks.png, behaviour-based, see section 1): index registers =
+lower-right array, address stack = upper-right array, timing = row along the top-left edge (in the
+photo), accumulator/carry = left centre, DCL = top left. Cross-tabulation, transistors touching an
+identified node -> cluster: index registers 128/128 -> C2; address stack array 22/22 and PC path
+22/22 -> C1; DCL 24/26 -> C4/C29; TEST input 3/4 -> C6 (JCN). The 1024 "instruction decode"
+transistors (any node whose level depends only on the opcode, which also includes internal bus
+lines at X1) spread over C0, C2, C3, C1 and most small instruction-specific clusters, as a
+decoder whose outputs feed every block would. So the clusters do sit together on the die and do
+map onto the expected blocks; the single-instruction clusters sit in the centre of the die, among
+the nodes that behave as the decode outputs named on Kintli's schematic (JCN, ISZ, JIN+FIN, KBP,
+DAA, ...).
+
+Behavioural node naming (results/node_names.tsv, 619 nodes): 128 index-register bit nodes (all 64
+bits, both polarities), 24 accumulator, 7 carry, 9 DCL, 20 address-stack (bits 9-11 of all four
+rows only; the lower bits never equal the stored bit at >= 5 of 8 slots, plausibly because those
+cells are refreshed/rewritten each cycle), 4 PC-path, 114 timing, 311 decode. Decode nodes whose
+opcode set equals a signal named on Kintli's schematic: JCN, ISZ, JCN+ISZ, JUN+JMS, JIN+FIN,
+FIN+FIM+SRC+JIN, INC+ISZ+XCH, INC+ISZ+ADD+SUB+XCH+LD, IO, IOR, IOW, BBL, JMS, LD, XCH, INC/ISZ, SBM,
+ADM, KBP, DAA, TCS, DCL, RAL, RAR, ... (the full set in the file).
+
+------------------------------------------------------------------------------------------------
+4. NO-EFFECT LESIONS
+------------------------------------------------------------------------------------------------
+WHAT "NO EFFECT" MEANS. In this study "no effect" means: in a switch-level model (ideal switches,
+no voltages, no leakage, no delays, VSS always beats VDD, charge kept forever on floating nodes,
+ideal external drivers on TEST/RESET/PHI1/PHI2), with this rig (scripted ROM that serves bytes in
+sequence whatever the address; one instruction per test, set up and read back through the pins),
+no pin sample of the instruction under test and nothing in the read-back state differed from the
+intact chip in 2046 tests and 3 reset tests. It does NOT mean the transistor is unnecessary in
+silicon.
+
+Explanation (first match):
+                                                            stuck-open  stuck-closed
+  by construction: load device, already always on                 -          427
+  by construction: protection device (gate on VSS) never conducts 8            -
+  by construction: gate node fed only by a load (the bootstrapped
+     drivers; 66 = the number of bootstrap capacitors)            -           66
+  gate never changes in any intact-chip probe sample
+     (device already always off / on in practice)                17           16
+  ideal external pin driver (touches TEST/RESET/PHI1/PHI2)        7           10
+  parallel duplicate device (the only identical pair)             2            -
+  VSS-wins: the forced-on device fights a strong VDD/VSS path     -           66
+  node left floating keeps its charge (no leakage)               63            -
+  unexplained                                                    71           55
+  total                                                         168          640
+
+The 126 unexplained (results/unexplained.txt; 102 pull-downs, 23 pass devices, 1 load; 36 on
+nodes without a load, i.e. precharged/dynamic). Where: 111 in the "instruction decode" region
+(decode PLA and its precharged lines, layout x 400-1600, y 600-1400 = centre of the photo), 53 in
+timing logic, 30 in the PC path, the rest in accumulator and DCL logic. Connections: e.g. T522c-
+T529c are the eight pull-downs VSS-536..543 gated by the OPA decode lines 118, 122-128; T941c,
+T960c, T996o, T997o share gate node 196; T1658o/T1669o are two pull-downs on node 319
+(tools/netq.py netlist/4004.json <node> lists any of them; lesions.tsv gives gate/terminal nodes
+with behavioural names).
+
+Follow-up (followup.py): every unexplained lesion was run (1) in lockstep with an intact twin,
+comparing every node at phi2-high of every clock period over the whole test set, and (2) against 300 random
+24-instruction programs from random states with random TEST levels and I/O inputs (all pins, every
+cycle, plus final state), the first catching program shrunk to a minimal test:
+    7  TEST GAP: random programs catch them. Minimal tests (state ; ROM bytes, [T] = TEST level):
+         T997o, T1041c: acc=F ... ; 37 (JIN P3) [T0], AB (LD R11) [T1]   (caught by 228/300)
+         T1466o: acc=3 cy=1 ; DD (LDM D) [T1], FA (STC) [T1]
+         T1785o: C1 (BBL 1) [T1], 1E 1C (JCN) [T1]
+         T1894o: C2 (BBL 2) [T1], 1D 55 (JCN) [T0 on the 2nd byte]
+         T1973o: acc=4 ; 14 (JCN acc=0) [T0], 8D [T1]  - TEST changing between the two cycles
+         T2077o: an 8-instruction sequence ending in JCN
+       i.e. effects of instruction SEQUENCES (JIN/BBL followed by something) and of TEST
+       changing during a two-cycle JCN, which single-instruction tests with a constant TEST
+       level cannot reach. Exact states in results/summary.txt / followup.tsv.
+   53  internal difference only at the lesioned device's own nodes (never propagates): e.g. a
+       stuck-closed pull-down that discharges a node only while nothing reads it.
+   13  a stack-pointer bit is consistently inverted (T813c, T829c, T903c, T992c, T1057c, ...):
+       the four address rows are used in a permuted but consistent order. This is a
+       FUNCTIONALLY EQUIVALENT fault: no test through the pins can see it, in any model.
+       (Worked example: nodes 180/185 are a cross-coupled latch set/reset at A1 through T813's
+       chain; under the lesion node 180 is the inverse of the intact chip's in all 350,305
+       samples, and node 180 equals bit 0 of the stack position in every probe record.)
+   47  internal nodes differ (from a few to over 100) but nothing reaches the pins. A sample of 16 was
+       run against 3000 random programs each: none caught. Typical: differences on precharged
+       decode/timing nodes in phases where their value is not sampled. These are the candidates
+       for TRUE MODEL BLIND SPOTS: in silicon a wrong precharge or a glitch at the wrong phase can
+       matter (charge sharing, races); the switch-level model, with no delays and no leakage,
+       evaluates them away.
+    6  silent: no node of the chip ever differs (T867c, T881o, T996o, T1001c, T1658o, T1669o);
+       T1658o/T1669o are two pull-downs on the same node 319 with gates 726 and 324 that are
+       evidently never needed separately. T881o shows the limit of the comparison: it is the load
+       of node 639, whose only other device is a pull-down gated by PHI2, so node 639 differs only
+       during phi1, between the sampling instants (phi2 high of every period), and the node it
+       discharges (615) is re-established before it is sampled. "Silent" therefore means "no node
+       differs at the sampled instants". Redundant in this model as sampled; whether redundant in
+       silicon is not decidable here.
+So of the 808 no-effect lesions, 682 are explained by construction or a named artefact, 7 are
+test gaps, 13 are functionally equivalent, and 106 are unresolved (masked or silent).
+
+Coverage of the test set (question 1): the pilot's recheck found 7 lesions that 2 random tests
+per opcode missed but 16 caught (1281c, 1910o, 1911c, 1948o, 1989c, 1989o, 2134o). The structured
+set catches all 7 (1281c: 16 ISZ tests; 1910o: 5 tests; the other five: exactly 1 test each, the
+"KBP for every accumulator value" extra). On the pilot's 400 sampled lesions the structured set
+misses none of the 314 the random K=2 set caught and finds 8 more. The 5 single-test catches show
+how thin the margin for KBP-type data-dependent faults still is.
+
+------------------------------------------------------------------------------------------------
+5. COMPARISON WITH JONAS & KORDING 2017 (6502)
+------------------------------------------------------------------------------------------------
+6502 (their paper; stuck-closed only; 3510 transistors; criterion: does each of three games reach
+its first frame): no effect 1565 (44.6%), breaks all three games 1560 (44.4%), two 200 (5.7%),
+one 186 (5.3%).
+4004 stuck-closed, here: no effect 640 / 2242 (28.5%); excluding loads (Visual6502 models
+depletion pull-ups as node properties, not transistors, so this is the closer comparison):
+213 / 1815 (11.7%); excluding also the 66 bootstrapped loads: 147 / 1749 (8.4%). Global 1226
+(67.5% of non-loads); instruction-specific (broad + partial + reset) 376 (20.7% of non-loads).
+Caveats: (1) our criterion is far stricter (any pin difference in any of 2049 targeted tests vs. a
+game booting), which alone moves lesions from "no effect" to "effect"; (2) 3 games exercise a
+small part of the 6502's behaviour, our tests every opcode with chosen operands; (3) different
+chips (6502 ~3500 vs 4004 ~1800 non-load devices), different simulators (both switch-level, theirs
+with its own resolution rules); (4) "breaks all games" and our "global" both largely mean "breaks
+the machinery every behaviour uses" (and here also the read-out), not a function. The qualitative
+point of their paper holds here too: a lesion map gives a usable description (KBP-only, DAA-only,
+JCN-only transistors exist and sit in tight groups) but the categories are those of the tests;
+e.g. "breaks only KBP" is a statement about the KBP decode line, not about a KBP "module".
+
+------------------------------------------------------------------------------------------------
+6. SURPRISES AND NARROW LESIONS
+------------------------------------------------------------------------------------------------
+- 468 lesions break exactly one instruction (mnemonic). By instruction: KBP 68, JCN 48, DAA 32,
+  ISZ 29, FIN 26, RAR 23, RAL 23, XCH 22, CMA 19, SRC 17, TCS 14, ... Typical anatomy: the load
+  (stuck-open) or a pull-down (stuck-closed) of one decode line, e.g. T1248o (load of the CMA line):
+  only CMA, accumulator wrong in 10/10 tests; T1251o (load of the CMC line): only CMC, and only
+  the carry; T1255o: only DAA (38/38 tests).
+- Single-flag lesions: 36 lesions change only the carry, e.g. T1242o (CLC only), T1251o (CMC
+  only); T1782o and T1983o change only the carry, but across all ALU instructions (ADD SUB SBM ADM
+  IAC CMA RAL RAR DAC DAA, 186 tests): the carry path itself.
+- 44 lesions change ONLY undocumented bus contents (X2/X3 outside SRC/I-O, as tabulated in
+  vectors/README.md), the final state staying correct in every test. Examples: T1066o (pull-down on
+  the INC/ISZ decode node): every ISZ test differs only in X2/X3 (the "register before/after"
+  values); T1151o: SUB only, X2/X3 only; a group gated by the IOR decode at the bus pad drivers
+  (T1475o, T1489o, T1874o, T2206o, T2229o, T2232o ...) changes X2/X3 in up to all 2046 tests. A
+  chip with such a fault runs every program correctly; only a logic analyser on the bus would
+  tell, which makes the X2/X3 findings of vectors/README.md sensitive to single defects.
+- FIN-only lesions that corrupt only the TABLE ADDRESS FIN puts out (ADDR/XUND kinds): in a real
+  system the wrong ROM byte would be fetched, here the scripted ROM serves the next byte anyway, so
+  only the address comparison sees it (a rig limitation worth knowing; the failure is still
+  counted).
+- 66 "pull-ups" are bootstrapped loads whose gate is fed only by a load and a capacitor: stuck
+  closed they are no-ops, stuck open they mostly break things.
+- 13 functionally equivalent stack-pointer faults (above).
+- 86 transistors matter only for reset (C5), scattered through control logic.
+
+------------------------------------------------------------------------------------------------
+7. CAVEATS AND LIMITS
+------------------------------------------------------------------------------------------------
+Model: switch level; no voltages, ratios or drive strengths; VSS beats VDD; no leakage (dynamic
+nodes keep charge forever; refresh logic therefore looks redundant); no delays (race/glitch
+protection looks redundant); charge sharing by conductor area; power-on puts every node at 0;
+the 66 bootstrap capacitors are not simulated; settling capped at 400 passes. A lesion that
+leaves a node floating, or creates a fight, is resolved cleanly; flags "floats" and "contention"
+mark those lesions (1196 open / 792 closed lesions carry them, most of them with an effect anyway).
+Rig: one instruction per test (except the follow-up programs); TEST constant during a test;
+scripted ROM ignores addresses (address errors are seen only as ADDR/XUND bus mismatches); ideal
+drivers on TEST, RESET, PHI1, PHI2; no RAM/ROM chip models, so I/O writes are checked only on the
+bus; read-out uses WRR, TCC, SRC and BBL, so a lesion in those paths reads as "global".
+Tests: 2046 targeted tests are not exhaustive; 7 of the 126 unexplained nulls were test gaps, so
+some lesions classified "partial" may break more instructions than listed, and some "no effect"
+may still be test gaps (the deep fuzz on 16 makes this unlikely for those 16 only).
+Classification: "global" mixes dead chips with single-bit storage faults (see clusters);
+clusters depend on the chosen distance and cut (0.3); names are generated from members.
+Floorplan: the reference blocks are inferred from the intact chip's behaviour, not from Intel's
+documents; the "decode" label is broad; address-stack low-bit cells were not identified.
+Extraction: a mis-traced transistor could appear as "no effect"; the device counts match the
+4004.com project's.
+Nothing has been checked on a real 4004.
+
+------------------------------------------------------------------------------------------------
+8. FILES AND REPRODUCING
+------------------------------------------------------------------------------------------------
+experiments/lesion/
+  study.c, lesionsim.c/.h   harness (structured tests, lesions, --verify, --peek, --fuzz, --probe,
+                            --floatprof, --nosnap, --list-tests) and simulator copy
+  build.sh                  builds lesion (pilot) and study
+  run_study.sh              parallel, resumable sweep (8 workers, niced)
+  all_lesions.txt           the 4484 lesions (no-ops by construction last)
+  isa.py                    opcode/instruction/kind tables
+  name_nodes.py             behavioural node naming from the probe
+  analyze_study.py          classes, flags, explanations, clusters, floorplan check, outputs
+  followup.py               peek + fuzz follow-up of unexplained nulls
+  figures.py                PNGs;  build_lesion_web.py  the web page
+  results/raw_lesions.txt.gz  one line per lesion: t mode n_fail_tests n_bad_opcodes reset_mask
+                            nosync unstable contention float_gate float_a float_b n_samples cpu_ms
+                            KINDS (4 hex digits per test, in results/tests.txt order; bits as in
+                            section 1: ACC=1 CY=2 REG=4 PC=8 STACK=10 CMRAM=20 ADDR=40 MBUS=80
+                            X1=100 XDOC=200 XUND=400 DRV=800 CM=1000 SYNC=2000 NOSYNC=4000
+                            UNST=8000)
+  results/tests.txt         the test table: idx op arg io state rot acc cy test dcl pc stack0-2 R0-15 why
+  results/lesions.tsv       one row per lesion: t mode x y (layout) photo_x photo_y (half-size photo)
+                            device gate a b (node ids, pad or behavioural names) severity effect
+                            n_fail_tests n_bad_opcodes reset_mask nosync unstable contention
+                            float_nodes flags null_explanation kinds instructions (name:% of its
+                            tests failing) groups cluster block
+  results/transistors.tsv   per transistor: severities, cluster, block
+  results/clusters.tsv      clusters: size, name, core/any instructions, kinds, spread, p, blocks
+  results/node_names.tsv    behaviourally named nodes;  results/probe.bin  the probe data
+  results/floatprof.txt     intact chip: node, floating samples, samples
+  results/unexplained.txt, followup.tsv, followup_raw.txt, followup_deep.txt
+  results/summary.txt       every number above, plus full narrow-lesion lists
+  results/web.json          data for the page
+  figures/die_severity.png, die_clusters.png, die_blocks.png, effects.png, cluster_matrix.png
+web/4004-lesion.html        single-file page (die photo, hover/click a transistor, highlight by
+                            instruction / cluster / block); photo credit CC BY-NC-SA 3.0 as in the
+                            birthday demo. Not published.
+Reproduce (repository root):
+  sh experiments/lesion/build.sh
+  experiments/lesion/study --verify
+  experiments/lesion/study --list-tests > experiments/lesion/results/tests.txt
+  experiments/lesion/run_study.sh experiments/lesion/all_lesions.txt experiments/lesion/sweep 8
+  cat experiments/lesion/sweep/part.*.out | sort -n -k1,1 -k2,2r | gzip > experiments/lesion/results/raw_lesions.txt.gz
+  experiments/lesion/study --floatprof > experiments/lesion/results/floatprof.txt
+  experiments/lesion/study --probe experiments/lesion/results/probe.bin --probe-random 600
+  (cd experiments/lesion && python3 name_nodes.py results/probe.bin ../../netlist/4004.json results/node_names.tsv)
+  python3 experiments/lesion/analyze_study.py && python3 experiments/lesion/followup.py 8
+  python3 experiments/lesion/analyze_study.py && python3 experiments/lesion/figures.py
+  python3 experiments/lesion/build_lesion_web.py web/4004-lesion.html
+Pilot files (lesion.c, analyze.py, check_golden.py, run_sweep.sh, pilot_*, recheck_*) are kept
+unchanged except that lesionsim.c gained the contention counter and mark-driven helper (the pilot
+binary is rebuilt by build.sh and behaves as before).
+

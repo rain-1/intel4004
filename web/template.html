@@ -1,0 +1,390 @@
+<title>Intel 4004 at 55</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;800&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;600&display=swap">
+<style>
+/* Layout: the die photograph is the stage; a narrow instrument column beside it carries
+   the teletype paper and the pin lamps; notes follow in one reading column.
+   One deliberate look (a dark microscope bench), so no light/dark switch. */
+:root {
+  color-scheme: dark;
+  --bench: #0d0f15;        /* page ground, blue-black like the photo's shadows */
+  --panel: #151923;
+  --line: #29303f;
+  --ink: #e7e4db;
+  --muted: #929aab;
+  --amber: #ffb84a;        /* a node pulled negative: the only accent */
+  --amber-dim: #5a4322;
+  --paper: #efe8d6;        /* teletype roll */
+  --paper-ink: #27231c;
+  --display: "Archivo", "Helvetica Neue", Arial, sans-serif;
+  --body: "IBM Plex Sans", system-ui, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
+}
+body {
+  background: var(--bench);
+  color: var(--ink);
+  font: 16px/1.55 var(--body);
+  padding-block: 28px 56px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+.wrap { max-width: 1240px; margin: 0 auto; display: flex; flex-direction: column; gap: 28px; }
+
+.masthead { display: flex; flex-direction: column; gap: 8px; }
+.dates { font: 500 13px var(--mono); letter-spacing: 0.08em; text-transform: uppercase; color: var(--amber); }
+h1 { font: 800 clamp(30px, 5vw, 54px)/1.02 var(--display); letter-spacing: -0.02em; margin: 0; text-wrap: balance; }
+.lede { max-width: 66ch; color: var(--muted); margin: 0; }
+.lede b { color: var(--ink); font-weight: 600; }
+
+.stage { display: grid; grid-template-columns: minmax(0, 1fr) 372px; gap: 20px; align-items: start; }
+@media (max-width: 980px) { .stage { grid-template-columns: minmax(0, 1fr); } }
+
+.die { margin: 0; display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+.die canvas { display: block; width: 100%; height: auto; background: #06070a; border: 1px solid var(--line); }
+.controls { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+button {
+  font: 500 13px var(--mono); color: var(--ink); background: var(--panel);
+  border: 1px solid var(--line); padding: 8px 14px; cursor: pointer; border-radius: 2px;
+}
+button:hover { border-color: var(--muted); }
+button:focus-visible { outline: 2px solid var(--amber); outline-offset: 2px; }
+button[aria-pressed="true"] { background: var(--amber); border-color: var(--amber); color: #1b1407; }
+.primary { min-width: 92px; }
+.speeds { display: flex; }
+.speeds button + button { border-left: 0; }
+.status { font: 13px var(--mono); color: var(--muted); font-variant-numeric: tabular-nums; margin: 0; min-height: 1.5em; }
+figcaption { font-size: 13px; color: var(--muted); max-width: 72ch; }
+.swatch { display: inline-block; width: 10px; height: 10px; background: var(--amber); vertical-align: baseline; margin-right: 2px; }
+
+.bench { display: flex; flex-direction: column; gap: 20px; min-width: 0; }
+.label { font: 500 11px var(--mono); letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); margin: 0 0 8px; }
+
+/* the printout: the one light object on the bench */
+.paper {
+  background: var(--paper); color: var(--paper-ink);
+  font: 500 12.5px/1.32 var(--mono); margin: 0; padding: 14px 10px 18px;
+  min-height: 25em; white-space: pre; overflow-x: auto;
+  border-radius: 1px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+  background-image: repeating-linear-gradient(to bottom, transparent 0 2.64em, rgba(60, 50, 30, 0.07) 2.64em 5.28em);
+}
+.cursor { display: inline-block; width: 0.6em; height: 1em; background: var(--paper-ink); vertical-align: -0.12em; animation: blink 1s steps(2) infinite; }
+@keyframes blink { 50% { opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { .cursor { animation: none; } }
+
+.pins { border: 1px solid var(--line); background: var(--panel); padding: 14px; display: flex; flex-direction: column; gap: 14px; }
+.slots { display: grid; grid-template-columns: repeat(8, 1fr); gap: 3px; }
+.slots span { font: 500 11px var(--mono); text-align: center; padding: 5px 0; color: var(--muted); border: 1px solid var(--line); }
+.slots span.now { background: var(--amber); border-color: var(--amber); color: #1b1407; }
+.lamps { display: flex; flex-wrap: wrap; gap: 6px 14px; }
+.lamp { font: 12px var(--mono); color: var(--muted); display: inline-flex; align-items: center; gap: 6px; }
+.lamp i { width: 10px; height: 10px; border-radius: 50%; background: var(--amber-dim); display: inline-block; }
+.lamp.on i { background: var(--amber); box-shadow: 0 0 8px var(--amber); }
+.lamp.on { color: var(--ink); }
+.readout { font: 13px var(--mono); margin: 0; display: grid; grid-template-columns: auto 1fr; gap: 4px 14px; font-variant-numeric: tabular-nums; }
+.readout dt { color: var(--muted); }
+.readout dd { margin: 0; min-width: 0; overflow-wrap: anywhere; }
+
+.notes { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 28px 44px; border-top: 1px solid var(--line); padding-top: 28px; }
+.notes > div { min-width: 0; }
+h2 { font: 800 20px/1.2 var(--display); margin: 0 0 10px; letter-spacing: -0.01em; }
+.notes p, .notes li { color: var(--muted); max-width: 62ch; }
+.notes p { margin: 0 0 10px; }
+.notes b { color: var(--ink); font-weight: 600; }
+.notes ol { margin: 0; padding-left: 1.3em; display: flex; flex-direction: column; gap: 8px; }
+.listing { font: 12.5px/1.5 var(--mono); background: var(--panel); border: 1px solid var(--line); padding: 12px 14px; overflow-x: auto; margin: 0 0 10px; color: var(--ink); }
+.listing .c { color: var(--muted); }
+.credit { font-size: 13px; color: var(--muted); max-width: 90ch; margin: 0; }
+a { color: var(--amber); }
+</style>
+
+<div class="wrap">
+  <header class="masthead">
+    <div class="dates">15 November 1971 &rarr; 15 November 2026</div>
+    <h1>The Intel 4004 turns 55</h1>
+    <p class="lede">This is the chip's actual circuit, running. Every one of its <b>__N_TRANSISTORS__ transistors</b> was recovered from tracings of the die's layers and is being switched on and off in your browser. The program it is running works out its own age and prints a birthday card.</p>
+  </header>
+
+  <div class="stage">
+    <figure class="die">
+      <canvas id="die" width="__W__" height="__H__" role="img" aria-label="Photomicrograph of the Intel 4004 die with electrically active wires lit up as the simulation runs"></canvas>
+      <div class="controls">
+        <button id="run" class="primary" type="button">Pause</button>
+        <button id="restart" type="button">Restart</button>
+        <div class="speeds" role="group" aria-label="Simulation speed">
+          <button id="speed-phase" type="button" aria-pressed="false">Slow motion</button>
+          <button id="speed-type" type="button" aria-pressed="true">Typewriter</button>
+          <button id="speed-full" type="button" aria-pressed="false">Full speed</button>
+        </div>
+      </div>
+      <p class="status" id="status">Loading the die&hellip;</p>
+      <figcaption><span class="swatch"></span> Lit wires are at the negative supply voltage, which is a logical 1 in the 4004's pMOS logic. Slow motion advances one clock phase at a time, so you can watch &phi;1 and &phi;2 take turns.</figcaption>
+    </figure>
+
+    <aside class="bench">
+      <section>
+        <p class="label">Teletype on ROM output ports 0 and 1</p>
+        <pre class="paper" id="paper" aria-live="off"><span class="cursor"></span></pre>
+      </section>
+      <section class="pins" aria-label="Signals on the chip's pins">
+        <div>
+          <p class="label">Instruction cycle</p>
+          <div class="slots" id="slots"><span>A1</span><span>A2</span><span>A3</span><span>M1</span><span>M2</span><span>X1</span><span>X2</span><span>X3</span></div>
+        </div>
+        <div>
+          <p class="label">Pins</p>
+          <div class="lamps" id="lamps"></div>
+        </div>
+        <dl class="readout">
+          <dt>Fetching</dt><dd id="r-addr">&ndash;</dd>
+          <dt>Instruction</dt><dd id="r-ins">&ndash;</dd>
+          <dt>Cycles</dt><dd id="r-cycles">0</dd>
+        </dl>
+      </section>
+    </aside>
+  </div>
+
+  <section class="notes">
+    <div>
+      <h2>From die to emulator</h2>
+      <ol>
+        <li><b>Layers.</b> The starting point is five tracings of the die: diffusion, polysilicon, metal, contacts and buried contacts, drawn by the 4004.com anniversary project from Intel's mask proofs and checked against photomicrographs like the one above.</li>
+        <li><b>Transistors.</b> Wherever polysilicon crosses diffusion there is a transistor, unless a buried contact joins them. Following every wire through every contact gives <b>__N_TRANSISTORS__ transistors</b>, <b>__N_CAPS__ bootstrap capacitors</b> and <b>__N_NODES__ electrical nodes</b>.</li>
+        <li><b>Switches.</b> Each transistor is treated as a switch. After every clock edge the simulator works out which wires are now connected to which supply, until nothing changes. No instruction set is programmed in anywhere.</li>
+        <li><b>Checks.</b> The chip was run against a conventional emulator written from the 1971 manual: every adder input, every accumulator instruction, RAM, jumps, and random programs. Every bus cycle matched.</li>
+        <li><b>Photo.</b> The layout was then lined up with the photograph by image correlation, to within __ALIGN_ERR__ pixels, so each wire's state can be painted where it really is.</li>
+      </ol>
+    </div>
+    <div>
+      <h2>How it works out its age</h2>
+      <p>The 4004 was built for a desk calculator, so it has instructions for decimal arithmetic. The program subtracts 1971 from 2026 one decimal digit at a time, then lights a candle for each year: a row per ten, and a last row for the rest.</p>
+<pre class="listing">TCS      <span class="c">; 9 or 10, depending on the borrow</span>
+SUB R4   <span class="c">; minus a digit of 1971</span>
+CLC
+ADD R8   <span class="c">; plus a digit of 2026</span>
+DAA      <span class="c">; back into decimal</span>
+XCH R8   <span class="c">; keep the digit; carry = no borrow</span></pre>
+      <p>It prints by writing half a character at a time to two output ports on the ROM chips. The 4004 has no halt instruction, so when the card is done it loops on a jump to itself.</p>
+    </div>
+    <div>
+      <h2>What is and is not simulated</h2>
+      <p><b>Simulated at transistor level:</b> the 4004 itself. The pins you see lit beside the photo are read off the simulated bond pads.</p>
+      <p><b>Modelled by behaviour:</b> the 4001 ROM and 4002 RAM chips around it, and the teletype.</p>
+      <p><b>Not attempted:</b> analogue effects. Voltages are just on or off, and timing is an ordering of events, so this says nothing about how fast the real chip could be clocked. In a browser it manages a few thousand instruction cycles a second; the real one did 92,500.</p>
+    </div>
+  </section>
+
+  <p class="credit">Die photomicrograph and mask-layer tracings: the Intel 4004 35th Anniversary Project at <a href="https://www.4004.com/">4004.com</a> (Tim McNerney, Lajos Kintli, Fred Huettig, Barry and Brian Silverman, Christopher Tarnovsky), used under CC BY-NC-SA 3.0. Netlist extraction, simulator and program made for the chip's 55th birthday.</p>
+</div>
+
+<script>
+__SIM_JS__
+</script>
+<script>
+"use strict";
+(function () {
+  const NET = __NET__;
+  const ROM = Uint8Array.from("__ROM__".match(/../g).map((h) => parseInt(h, 16)));
+  const W = __W__, H = __H__;
+  const SRC = { photo: "__PHOTO__", metal: "__IDS_METAL__", lower: "__IDS_LOWER__" };
+
+  const $ = (id) => document.getElementById(id);
+  const canvas = $("die"), ctx = canvas.getContext("2d");
+  const paper = $("paper"), statusEl = $("status");
+  const hex = (v, w) => v.toString(16).toUpperCase().padStart(w, "0");
+
+  // ---- the machine ----------------------------------------------------------------
+  const board = new Board(NET, ROM);
+  let text = "", fetchNote = "", pendingOperand = null;
+  board.mem.onRomPort = (chip, value) => {
+    if (chip === 1) { text += String.fromCharCode((value << 4) | board.mem.romPort[0]); paperDirty = true; }
+  };
+  const IO = ["WRM", "WMP", "WRR", "WPM", "WR0", "WR1", "WR2", "WR3", "SBM", "RDM", "RDR", "ADM", "RD0", "RD1", "RD2", "RD3"];
+  const ACC = ["CLB", "CLC", "IAC", "CMC", "CMA", "RAL", "RAR", "TCC", "DAC", "TCS", "STC", "DAA", "KBP", "DCL"];
+  function disasm(a) {
+    const b = ROM[a] || 0, n = ROM[a + 1] || 0, r = b & 15;
+    switch (b >> 4) {
+      case 0x0: return "NOP";
+      case 0x1: return "JCN " + r + ", $" + hex(n, 2);
+      case 0x2: return r & 1 ? "SRC P" + (r >> 1) : "FIM P" + (r >> 1) + ", $" + hex(n, 2);
+      case 0x3: return r & 1 ? "JIN P" + (r >> 1) : "FIN P" + (r >> 1);
+      case 0x4: return "JUN $" + hex((r << 8) | n, 3);
+      case 0x5: return "JMS $" + hex((r << 8) | n, 3);
+      case 0x6: return "INC R" + r;
+      case 0x7: return "ISZ R" + r + ", $" + hex(n, 2);
+      case 0x8: return "ADD R" + r;
+      case 0x9: return "SUB R" + r;
+      case 0xA: return "LD R" + r;
+      case 0xB: return "XCH R" + r;
+      case 0xC: return "BBL " + r;
+      case 0xD: return "LDM " + r;
+      case 0xE: return IO[r];
+      default: return ACC[r] || "(undefined)";
+    }
+  }
+  // The board reports each address the chip puts on the bus. Work out whether it is an
+  // opcode, the second byte of a two-byte instruction, or FIN reading a table.
+  let lastFetch = -1;
+  function noteFetch(addr) {
+    if (addr === lastFetch) return;
+    lastFetch = addr;
+    const b = ROM[addr] || 0;
+    if (pendingOperand === "operand") { fetchNote = "second byte of " + fetchNote.replace(/^second byte of /, ""); pendingOperand = null; return; }
+    if (pendingOperand === "table") {
+      const ch = b >= 32 && b < 127 ? ' "' + String.fromCharCode(b) + '"' : "";
+      fetchNote = "FIN reads $" + hex(b, 2) + ch; pendingOperand = null; return;
+    }
+    fetchNote = disasm(addr);
+    const opr = b >> 4;
+    if (opr === 1 || opr === 4 || opr === 5 || opr === 7 || (opr === 2 && !(b & 1))) pendingOperand = "operand";
+    else if (opr === 3 && !(b & 1)) pendingOperand = "table";
+  }
+
+  // ---- drawing the die ------------------------------------------------------------
+  let base = null, frame = null, layers = [], glow = new Float32Array(NET.nodes);
+  const TINT = [[150, 96, 14], [128, 44, 30]];   // metal, then poly/diffusion
+  function loadImage(src) {
+    return new Promise((resolve, reject) => {
+      const im = new Image();
+      im.onload = () => resolve(im);
+      im.onerror = reject;
+      im.src = src;
+    });
+  }
+  function pixelsOf(im) {
+    const c = document.createElement("canvas");
+    c.width = W; c.height = H;
+    const x = c.getContext("2d", { willReadFrequently: true });
+    x.drawImage(im, 0, 0, W, H);
+    return x.getImageData(0, 0, W, H).data;
+  }
+  async function prepare() {
+    const [photo, metal, lower] = await Promise.all([loadImage(SRC.photo), loadImage(SRC.metal), loadImage(SRC.lower)]);
+    const p = pixelsOf(photo);
+    base = new Uint8ClampedArray(p.length);
+    for (let i = 0; i < p.length; i += 4) {      // dim and cool the photo so lit wires read
+      const l = (p[i] * 0.3 + p[i + 1] * 0.5 + p[i + 2] * 0.2);
+      base[i] = (p[i] * 0.55 + l * 0.45) * 0.42;
+      base[i + 1] = (p[i + 1] * 0.55 + l * 0.45) * 0.44;
+      base[i + 2] = (p[i + 2] * 0.55 + l * 0.45) * 0.5;
+      base[i + 3] = 255;
+    }
+    for (const im of [metal, lower]) {
+      const d = pixelsOf(im);
+      let count = 0;
+      for (let i = 0; i < d.length; i += 4) if ((d[i] | (d[i + 1] << 8)) < NET.nodes) count++;
+      const at = new Uint32Array(count), node = new Uint16Array(count);
+      let k = 0;
+      for (let i = 0; i < d.length; i += 4) {
+        const id = d[i] | (d[i + 1] << 8);
+        if (id < NET.nodes && id !== NET.pads.VSS && id !== NET.pads.VDD) { at[k] = i; node[k++] = id; }
+      }
+      layers.push({ at: at.subarray(0, k), node: node.subarray(0, k) });
+    }
+    frame = ctx.createImageData(W, H);
+  }
+  function draw() {
+    const state = board.chip.state, data = frame.data;
+    for (let n = 0; n < glow.length; n++) glow[n] = state[n] ? 1 : glow[n] * 0.72;
+    data.set(base);
+    for (let l = 0; l < layers.length; l++) {
+      const { at, node } = layers[l], [r, g, b] = TINT[l];
+      for (let k = 0; k < at.length; k++) {
+        const v = glow[node[k]];
+        if (v < 0.03) continue;
+        const i = at[k];
+        data[i] += r * v; data[i + 1] += g * v; data[i + 2] += b * v;
+      }
+    }
+    ctx.putImageData(frame, 0, 0);
+  }
+
+  // ---- instruments ----------------------------------------------------------------
+  const pads = NET.pads;
+  const LAMPS = [["φ1", pads.PHI1], ["φ2", pads.PHI2], ["SYNC", pads.SYNC], ["D3", pads.D3], ["D2", pads.D2],
+                 ["D1", pads.D1], ["D0", pads.D0], ["CM-ROM", pads.CMROM], ["CM-RAM0", pads.CMRAM0]];
+  const lampEls = LAMPS.map(([name]) => {
+    const el = document.createElement("span");
+    el.className = "lamp";
+    el.innerHTML = "<i></i>" + name;
+    $("lamps").appendChild(el);
+    return el;
+  });
+  const slotEls = Array.from($("slots").children);
+  let paperDirty = true, shownSlot = -2;
+  function instruments() {
+    const state = board.chip.state;
+    for (let i = 0; i < LAMPS.length; i++) lampEls[i].classList.toggle("on", state[LAMPS[i][1]] === 1);
+    if (board.slot !== shownSlot) {
+      slotEls.forEach((el, i) => el.classList.toggle("now", i === board.slot));
+      shownSlot = board.slot;
+    }
+    noteFetch(board.fetchAddr);
+    $("r-addr").textContent = "$" + hex(board.fetchAddr, 3);
+    $("r-ins").textContent = fetchNote;
+    $("r-cycles").textContent = board.cycles.toLocaleString("en-US");
+    if (paperDirty) {
+      paper.textContent = text.replace(/^\n/, "");
+      const cur = document.createElement("span");
+      cur.className = "cursor";
+      paper.appendChild(cur);
+      paperDirty = false;
+    }
+  }
+
+  // ---- running --------------------------------------------------------------------
+  let running = !window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  let speed = "type", lastPhase = 0, rate = 0, rateCycles = 0, rateTime = 0, done = false;
+  function advance(now) {
+    if (speed === "phase") {
+      if (now - lastPhase >= 140) { board.step(); lastPhase = now; }
+    } else if (speed === "type" || done) {
+      for (let i = 0; i < 3; i++) board.cycle();
+    } else {
+      const until = performance.now() + 11;
+      do { board.cycle(); } while (performance.now() < until);
+    }
+    if (!done && board.halted()) done = true;
+  }
+  function describe() {
+    if (done) return "Done. The 4004 has no halt instruction, so it is now looping on a jump to itself.";
+    if (!running) return board.cycles ? "Paused." : "Ready. Press Run to start the chip.";
+    if (speed === "phase") return "Slow motion: one clock phase at a time.";
+    return rate ? Math.round(rate).toLocaleString("en-US") + " instruction cycles per second (the real chip: 92,500)" : "Running.";
+  }
+  function tick(now) {
+    if (running) {
+      advance(now);
+      if (now - rateTime > 500) {
+        rate = (board.cycles - rateCycles) * 1000 / (now - rateTime);
+        rateCycles = board.cycles; rateTime = now;
+      }
+    }
+    draw();
+    instruments();
+    statusEl.textContent = describe();
+    requestAnimationFrame(tick);
+  }
+
+  const runBtn = $("run");
+  function syncButtons() {
+    runBtn.textContent = running ? "Pause" : "Run";
+    for (const s of ["phase", "type", "full"]) $("speed-" + s).setAttribute("aria-pressed", String(speed === s));
+  }
+  runBtn.addEventListener("click", () => { running = !running; rate = 0; rateTime = performance.now(); rateCycles = board.cycles; syncButtons(); });
+  $("restart").addEventListener("click", () => {
+    board.reset();
+    text = ""; fetchNote = ""; pendingOperand = null; lastFetch = -1; done = false; paperDirty = true;
+    rate = 0; rateCycles = 0; rateTime = performance.now();
+    running = true;
+    syncButtons();
+  });
+  for (const s of ["phase", "type", "full"]) {
+    $("speed-" + s).addEventListener("click", () => { speed = s; rate = 0; rateCycles = board.cycles; rateTime = performance.now(); syncButtons(); });
+  }
+  syncButtons();
+
+  prepare().then(() => requestAnimationFrame(tick)).catch(() => {
+    statusEl.textContent = "The die image could not be decoded in this browser.";
+  });
+})();
+</script>
