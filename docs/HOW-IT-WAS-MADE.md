@@ -171,9 +171,13 @@ To see that the netlist matters, delete or change one transistor line in
 
 ## What is weak or unverified
 
-- **The checker is also mine.** The reference emulator and the tests were
-  written by the same model that wrote the simulator. The Busicom firmware and
-  the published device counts are the only outside checks.
+- **The first checker is also mine.** The reference emulator and the tests were
+  written by the same model that wrote the simulator. To address that, the
+  netlist-derived vectors were later replayed through an emulator written by
+  someone else (`tests/independent/RESULTS.md`): 92,000 vectors covering every
+  documented instruction except RDR and the TEST term of JCN are identical.
+  Those two are not modelled by that emulator and remain checked only against
+  my own reference, the manual and the Busicom firmware.
 - **Nothing was compared with a real 4004**, or with the 4004.com project's
   own simulator.
 - **Switch-level only.** No voltages, no timing within a clock phase.

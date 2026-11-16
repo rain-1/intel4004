@@ -33,7 +33,7 @@ demo: i4004 demo/birthday.bin
 clean:
 	rm -f i4004
 
-.PHONY: all clean test demo web video vectors
+.PHONY: all clean test demo web video vectors test-independent
 
 # Single-file browser demo: the birthday program running on the die photograph
 web: demo/birthday.bin
@@ -80,3 +80,8 @@ busicom-rom:
 	cmp build/busicom/busicom-141pf.bin $(BUSICOM_ROM) && echo "identical to $(BUSICOM_ROM)"
 
 .PHONY: busicom test-busicom busicom-rom
+
+# Replay the vectors through an independent emulator (see tests/independent/RESULTS.md)
+#   make test-independent I40XX=/path/to/i40xx-checkout
+test-independent:
+	bun tests/independent/check_i40xx.js $(I40XX) vectors/v1

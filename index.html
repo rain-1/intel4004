@@ -20,10 +20,15 @@ layers, not from a photograph.</p>
       <small>What breaks when each of the 2,242 transistors fails.</small></li>
   <li><a href="experiments/lesion/figures/floorplan.png">Floorplan from what breaks</a><br>
       <small>The die divided into blocks using only the lesion results: which part of the chip's
-      state each transistor's failure corrupts. Not compared with Intel's floorplan.</small><br>
+      state each transistor's failure corrupts. I found no published labelled floorplan to compare it
+      with; <a href="https://github.com/rain-1/intel4004/blob/main/experiments/lesion/FLOORPLAN-CHECK.md">what
+      could be checked</a>.</small><br>
       <a href="experiments/lesion/figures/floorplan.png"><img src="experiments/lesion/figures/floorplan.png"
       alt="Die photo of the Intel 4004 overlaid with coloured zones: index registers lower right, program counter and address stack upper right, accumulator and arithmetic in the centre and left, command lines upper left, clock and timing along the top and bottom."
       style="width:100%;height:auto;margin-top:.5rem;border-radius:6px"></a></li>
+  <li><a href="https://github.com/rain-1/intel4004/blob/main/tests/independent/RESULTS.md">Checked against someone else's emulator</a><br>
+      <small>102,400 test cases from the netlist replayed through an independent 4004 emulator.
+      Every documented instruction it models agrees.</small></li>
   <li><a href="https://github.com/rain-1/intel4004/blob/main/docs/HOW-IT-WAS-MADE.md">How it was made</a><br>
       <small>The process, what public information was used, and how to check it.</small></li>
   <li><a href="https://github.com/rain-1/intel4004">Source code</a></li>
